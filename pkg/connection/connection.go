@@ -51,7 +51,6 @@ func NewConnection(baseURL string, username string, password string, sslVerify b
 		}
 
 		certData, err := os.ReadFile(certPath)
-
 		if err != nil {
 			return nil, err
 		}
