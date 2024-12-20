@@ -9,24 +9,6 @@ import (
 	"net/http"
 )
 
-type InventoryRequestSchema struct {
-	Name                         string            `json:"name"`
-	Description                  string            `json:"description"`
-	Organization                 int16             `json:"organization"`
-	Kind                         string            `json:"kind"`
-	HostFilter                   string            `json:"host_filter"`
-	Variables                    map[string]string `json:"variables"`
-	PreventInstanceGroupFallback bool              `json:"prevent_instance_group_fallback"`
-}
-
-type InventoryHostRequestSchema struct {
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	Enabled     bool              `json:"enabled"`
-	InstanceID  string            `json:"instance_id"`
-	Variables   map[string]string `json:"variables"`
-}
-
 type Inventory struct {
 	URI        string
 	connection connection.BasicConnection
