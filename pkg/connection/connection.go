@@ -13,6 +13,14 @@ import (
 	"os"
 )
 
+// BasicConnection is the basic connection interface
+type BasicConnection interface {
+	Get(uri string, params map[string]string) (response *http.Response, err error)
+	Post(uri string, data []byte) (response *http.Response, err error)
+	Patch(uri string, data []byte) (response *http.Response, err error)
+	Delete(uri string, data []byte) (response *http.Response, err error)
+}
+
 // Connection is the basic connection
 type Connection struct {
 	BaseURL    *url.URL
@@ -103,8 +111,27 @@ func (connection *Connection) createTLSConfig(sslVerify bool, certPath string) (
 //
 //	:param method: The HTTP method to use
 //	:param finalURL: The final URL to use
-func (connection *Connection) createRequest(method string, finalURL string) (*http.Request, error) {
-	request, err := http.NewRequest(method, finalURL, nil)
+//	:param data: The data to send
+func (connection *Connection) createRequest(method string, finalURL string, data *bytes.Buffer) (*http.Request, error) {
+
+	if data == nil {
+		request, err := http.NewRequest(method, finalURL, nil)
+
+		if err != nil {
+			return nil, err
+		}
+
+		for key, value := range connection.Headers {
+			request.Header.Set(key, value)
+		}
+
+		request.SetBasicAuth(connection.Username, connection.Password)
+
+		return request, nil
+
+	}
+
+	request, err := http.NewRequest(method, finalURL, data)
 
 	if err != nil {
 		return nil, err
@@ -117,6 +144,7 @@ func (connection *Connection) createRequest(method string, finalURL string) (*ht
 	request.SetBasicAuth(connection.Username, connection.Password)
 
 	return request, nil
+
 }
 
 // Get performs a GET request
@@ -138,7 +166,7 @@ func (connection *Connection) Get(uri string, params map[string]string) (respons
 
 	finalURL := connection.BaseURL.JoinPath(connection.APIVersion, uri)
 
-	request, err := connection.createRequest("GET", finalURL.String())
+	request, err := connection.createRequest("GET", finalURL.String(), nil)
 
 	if err != nil {
 		return nil, err
@@ -161,14 +189,10 @@ func (connection *Connection) Post(uri string, data []byte) (response *http.Resp
 
 	finalURL := connection.BaseURL.JoinPath(connection.APIVersion, uri)
 
-	request, err := http.NewRequest("POST", finalURL.String(), bytes.NewBuffer(data))
+	request, err := connection.createRequest("POST", finalURL.String(), bytes.NewBuffer(data))
 
 	if err != nil {
 		return nil, err
-	}
-
-	for key, value := range connection.Headers {
-		request.Header.Set(key, value)
 	}
 
 	response, err = client.Do(request)
@@ -187,14 +211,10 @@ func (connection *Connection) Patch(uri string, data []byte) (response *http.Res
 
 	finalURL := connection.BaseURL.JoinPath(connection.APIVersion, uri)
 
-	request, err := http.NewRequest("PATCH", finalURL.String(), bytes.NewBuffer(data))
+	request, err := connection.createRequest("PATCH", finalURL.String(), bytes.NewBuffer(data))
 
 	if err != nil {
 		return nil, err
-	}
-
-	for key, value := range connection.Headers {
-		request.Header.Set(key, value)
 	}
 
 	response, err = client.Do(request)
@@ -213,14 +233,10 @@ func (connection *Connection) Delete(uri string, data []byte) (response *http.Re
 
 	finalURL := connection.BaseURL.JoinPath(connection.APIVersion, uri)
 
-	request, err := http.NewRequest("DELETE", finalURL.String(), bytes.NewBuffer(data))
+	request, err := connection.createRequest("DELETE", finalURL.String(), bytes.NewBuffer(data))
 
 	if err != nil {
 		return nil, err
-	}
-
-	for key, value := range connection.Headers {
-		request.Header.Set(key, value)
 	}
 
 	response, err = client.Do(request)
