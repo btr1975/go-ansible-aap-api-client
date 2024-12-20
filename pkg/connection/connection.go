@@ -7,9 +7,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -21,7 +19,6 @@ type BasicConnection interface {
 	Post(uri string, data []byte) (response *http.Response, err error)
 	Patch(uri string, data []byte) (response *http.Response, err error)
 	Delete(uri string, data []byte) (response *http.Response, err error)
-	JsonUnMarshall(response *http.Response, schema *any) error
 }
 
 // Connection is the basic connection
@@ -245,20 +242,4 @@ func (connection *Connection) Delete(uri string, data []byte) (response *http.Re
 	response, err = client.Do(request)
 
 	return response, err
-}
-
-func (connection *Connection) JsonUnMarshall(response *http.Response, schema *any) error {
-	body, err := io.ReadAll(response.Body)
-
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(body, &schema)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
