@@ -91,3 +91,15 @@ func (inventory *Inventory) CreateInventory(inventoryRequest InventoryRequestSch
 
 	return inventory.connection.Post(inventory.URI, data)
 }
+
+func (inventory *Inventory) DeleteInventory(id int) (statusCode int, err error) {
+	uri := fmt.Sprintf("%s%d/", inventory.URI, id)
+
+	response, err := inventory.connection.Delete(uri, nil)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return response.StatusCode, nil
+}
