@@ -4,7 +4,7 @@ package hosts
 type HostRequestSchema struct {
 	Name        string            `json:"name"`
 	Description string            `json:"description"`
-	Inventory   int16             `json:"inventory"`
+	Inventory   int32             `json:"inventory"`
 	Enabled     bool              `json:"enabled"`
 	InstanceID  string            `json:"instance_id"`
 	Variables   map[string]string `json:"variables"`
@@ -32,7 +32,7 @@ type HostRelatedResponseSchema struct {
 
 // HostResponseSingleSchema is the schema for a single host response item
 type HostResponseSingleSchema struct {
-	ID      int                       `json:"id"`
+	ID      int32                     `json:"id"`
 	Type    string                    `json:"type"`
 	URL     string                    `json:"url"`
 	Related HostRelatedResponseSchema `json:"related"`
@@ -42,14 +42,14 @@ type HostResponseSingleSchema struct {
 	Modified             string `json:"modified"`
 	HasActiveFailures    bool   `json:"has_active_failures"`
 	HasInventorySources  bool   `json:"has_inventory_sources"`
-	LastJob              uint16 `json:"last_job"`
-	LastJobHostSummary   uint16 `json:"last_job_host_summary"`
+	LastJob              int32  `json:"last_job"`
+	LastJobHostSummary   int32  `json:"last_job_host_summary"`
 	AnsibleFactsModified string `json:"ansible_facts_modified"`
 }
 
 // HostResponseSchema is the schema for an hosts response
 type HostResponseSchema struct {
-	Count    int                        `json:"count"`
+	Count    int32                      `json:"count"`
 	Next     string                     `json:"next"`
 	Previous string                     `json:"previous"`
 	Results  []HostResponseSingleSchema `json:"results"`

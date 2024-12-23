@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
+	"github.com/btr1975/go-ansible-aap-api-client/pkg/hosts"
 	"net/http"
 )
 
@@ -17,7 +18,7 @@ type Inventory struct {
 }
 
 // NewInventory creates a new inventory instance
-
+//
 // :param basicConnection: The basic connection to use
 func NewInventory(basicConnection connection.BasicConnection) *Inventory {
 	return &Inventory{
@@ -74,7 +75,7 @@ func (inventory *Inventory) GetInventory(name string) (schemaResponse InventoryR
 // GetInventoryID gets an inventory ID by name
 //
 //	:param name: The name of the inventory to get
-func (inventory *Inventory) GetInventoryID(name string) (id int, err error) {
+func (inventory *Inventory) GetInventoryID(name string) (id int32, err error) {
 	schemaResponse, err := inventory.GetInventory(name)
 
 	if err != nil {
@@ -96,7 +97,7 @@ func (inventory *Inventory) GetInventoryID(name string) (id int, err error) {
 // DeleteInventory deletes an inventory by ID
 //
 //	:param id: The ID of the inventory to delete
-func (inventory *Inventory) DeleteInventory(id int) (statusCode int, err error) {
+func (inventory *Inventory) DeleteInventory(id int32) (statusCode int, err error) {
 	uri := fmt.Sprintf("%s%d/", inventory.URI, id)
 
 	response, err := inventory.connection.Delete(uri, nil)
@@ -112,7 +113,7 @@ func (inventory *Inventory) DeleteInventory(id int) (statusCode int, err error) 
 //
 //	:param id: The ID of the inventory to update
 //	:param inventoryRequest: The inventory request schema to use
-func (inventory *Inventory) UpdateInventory(id int, inventoryRequest InventoryRequestSchema) (response *http.Response, err error) {
+func (inventory *Inventory) UpdateInventory(id int32, inventoryRequest InventoryRequestSchema) (response *http.Response, err error) {
 	uri := fmt.Sprintf("%s%d/", inventory.URI, id)
 
 	data, err := json.Marshal(inventoryRequest)
@@ -135,4 +136,21 @@ func (inventory *Inventory) CreateInventory(inventoryRequest InventoryRequestSch
 	}
 
 	return inventory.connection.Post(inventory.URI, data)
+}
+
+// AddHostToInventory adds a host to an inventory
+//
+//	:param id: The ID of the inventory to add the host to
+//	:param hostRequest: The host request schema to use
+func (inventory *Inventory) AddHostToInventory(id int32, hostRequest hosts.HostRequestSchema) (response *http.Response, err error) {
+	uri := fmt.Sprintf("%s%d/hosts/", inventory.URI, id)
+
+	data, err := json.Marshal(hostRequest)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return inventory.connection.Post(uri, data)
+
 }

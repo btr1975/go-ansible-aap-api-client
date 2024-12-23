@@ -4,7 +4,7 @@ package inventories
 type InventoryRequestSchema struct {
 	Name                         string            `json:"name"`
 	Description                  string            `json:"description"`
-	Organization                 int16             `json:"organization"`
+	Organization                 int32             `json:"organization"`
 	Kind                         string            `json:"kind"`
 	HostFilter                   string            `json:"host_filter"`
 	Variables                    map[string]string `json:"variables"`
@@ -43,7 +43,7 @@ type InventoryRelatedResponseSchema struct {
 
 // InventoryResponseSingleSchema is the schema for a single inventory response item
 type InventoryResponseSingleSchema struct {
-	ID      int                            `json:"id"`
+	ID      int32                          `json:"id"`
 	Type    string                         `json:"type"`
 	URL     string                         `json:"url"`
 	Related InventoryRelatedResponseSchema `json:"related"`
@@ -52,18 +52,18 @@ type InventoryResponseSingleSchema struct {
 	Created                      string `json:"created"`
 	Modified                     string `json:"modified"`
 	HasActiveFailures            bool   `json:"has_active_failures"`
-	TotalHosts                   int    `json:"total_hosts"`
-	HostsWithActiveFailures      int    `json:"hosts_with_active_failures"`
-	TotalGroups                  int    `json:"total_groups"`
+	TotalHosts                   int32  `json:"total_hosts"`
+	HostsWithActiveFailures      int32  `json:"hosts_with_active_failures"`
+	TotalGroups                  int32  `json:"total_groups"`
 	HasInventorySources          bool   `json:"has_inventory_sources"`
-	TotalInventorySources        int    `json:"total_inventory_sources"`
-	InventorySourcesWithFailures int    `json:"inventory_sources_with_failures"`
+	TotalInventorySources        int32  `json:"total_inventory_sources"`
+	InventorySourcesWithFailures int32  `json:"inventory_sources_with_failures"`
 	PendingDeletion              bool   `json:"pending_deletion"`
 }
 
 // InventoryResponseSchema is the schema for an inventory response
 type InventoryResponseSchema struct {
-	Count    int                             `json:"count"`
+	Count    int32                           `json:"count"`
 	Next     string                          `json:"next"`
 	Previous string                          `json:"previous"`
 	Results  []InventoryResponseSingleSchema `json:"results"`
