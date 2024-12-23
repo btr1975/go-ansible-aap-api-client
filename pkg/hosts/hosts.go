@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
+	"net/http"
 )
 
 // Host represents an AAP host
@@ -70,6 +71,9 @@ func (host *Host) GetHost(name string) (schemaResponse HostResponseSchema, err e
 	return schemaResponse, nil
 }
 
+// GetHostID gets a host ID by name
+//
+//	:param name: The name of the host to get
 func (host *Host) GetHostID(name string) (id int32, err error) {
 	params := map[string]string{
 		"name": name,
@@ -97,6 +101,9 @@ func (host *Host) GetHostID(name string) (id int32, err error) {
 
 }
 
+// DeleteHost deletes a host by ID
+//
+//	:param id: The ID of the host to delete
 func (host *Host) DeleteHost(id int32) (statusCode int, err error) {
 	uri := fmt.Sprintf("%s%d/", host.URI, id)
 
@@ -108,4 +115,20 @@ func (host *Host) DeleteHost(id int32) (statusCode int, err error) {
 
 	return response.StatusCode, nil
 
+}
+
+// UpdateHost updates a host by ID
+//
+//	:param id: The ID of the host to update
+//	:param hostRequest: The host request to use
+func (host *Host) UpdateHost(id int32, hostRequest HostRequestSchema) (response *http.Response, err error) {
+	uri := fmt.Sprintf("%s%d/", host.URI, id)
+
+	data, err := json.Marshal(hostRequest)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return host.connection.Patch(uri, data)
 }
