@@ -10,11 +10,15 @@ import (
 	"net/http"
 )
 
+// Inventory represents an AAP inventory
 type Inventory struct {
 	URI        string
 	connection connection.BasicConnection
 }
 
+// NewInventory creates a new inventory instance
+
+// :param basicConnection: The basic connection to use
 func NewInventory(basicConnection connection.BasicConnection) *Inventory {
 	return &Inventory{
 		URI:        "inventories/",
@@ -22,6 +26,7 @@ func NewInventory(basicConnection connection.BasicConnection) *Inventory {
 	}
 }
 
+// GetAllInventories gets all inventories
 func (inventory *Inventory) GetAllInventories() (schemaResponse InventoryResponseSchema, err error) {
 	response, err := inventory.connection.Get(inventory.URI, nil)
 
@@ -40,6 +45,9 @@ func (inventory *Inventory) GetAllInventories() (schemaResponse InventoryRespons
 	return schemaResponse, nil
 }
 
+// GetInventory gets an inventory by name
+//
+//	:param name: The name of the inventory to get
 func (inventory *Inventory) GetInventory(name string) (schemaResponse InventoryResponseSchema, err error) {
 	params := map[string]string{
 		"name": name,
@@ -63,6 +71,9 @@ func (inventory *Inventory) GetInventory(name string) (schemaResponse InventoryR
 
 }
 
+// GetInventoryID gets an inventory ID by name
+//
+//	:param name: The name of the inventory to get
 func (inventory *Inventory) GetInventoryID(name string) (id int, err error) {
 	schemaResponse, err := inventory.GetInventory(name)
 
@@ -82,16 +93,9 @@ func (inventory *Inventory) GetInventoryID(name string) (id int, err error) {
 
 }
 
-func (inventory *Inventory) CreateInventory(inventoryRequest InventoryRequestSchema) (response *http.Response, err error) {
-	data, err := json.Marshal(inventoryRequest)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return inventory.connection.Post(inventory.URI, data)
-}
-
+// DeleteInventory deletes an inventory by ID
+//
+//	:param id: The ID of the inventory to delete
 func (inventory *Inventory) DeleteInventory(id int) (statusCode int, err error) {
 	uri := fmt.Sprintf("%s%d/", inventory.URI, id)
 
@@ -102,4 +106,33 @@ func (inventory *Inventory) DeleteInventory(id int) (statusCode int, err error) 
 	}
 
 	return response.StatusCode, nil
+}
+
+// UpdateInventory updates an inventory by ID
+//
+//	:param id: The ID of the inventory to update
+//	:param inventoryRequest: The inventory request schema to use
+func (inventory *Inventory) UpdateInventory(id int, inventoryRequest InventoryRequestSchema) (response *http.Response, err error) {
+	uri := fmt.Sprintf("%s%d/", inventory.URI, id)
+
+	data, err := json.Marshal(inventoryRequest)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return inventory.connection.Patch(uri, data)
+}
+
+// CreateInventory creates a new inventory
+//
+//	:param inventoryRequest: The inventory request schema to use
+func (inventory *Inventory) CreateInventory(inventoryRequest InventoryRequestSchema) (response *http.Response, err error) {
+	data, err := json.Marshal(inventoryRequest)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return inventory.connection.Post(inventory.URI, data)
 }
