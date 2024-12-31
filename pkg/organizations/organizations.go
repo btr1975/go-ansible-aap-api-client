@@ -1,3 +1,6 @@
+/*
+Package organizations provides a way to manipulate organizations for Ansible AAP
+*/
 package organizations
 
 import (

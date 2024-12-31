@@ -1,7 +1,6 @@
 /*
 Package groups provides a way to manipulate groups for Ansible AAP
 */
-
 package groups
 
 import (

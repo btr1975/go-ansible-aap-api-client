@@ -1,7 +1,6 @@
 /*
 Package hosts provides a way to manipulate hosts for Ansible AAP
 */
-
 package hosts
 
 import (
