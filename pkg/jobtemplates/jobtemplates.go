@@ -91,9 +91,10 @@ func (jobTemplate *JobTemplate) GetJobTemplateID(name string) (id int32, err err
 // LaunchJobTemplate launches a job template by ID
 //
 //	:param id: The ID of the job template to launch
-func (jobTemplate *JobTemplate) LaunchJobTemplate(id int32) (schemaResponse JobTemplateResponseSingleSchema, err error) {
+//	:param launchData: The marshalled json data to use when launching the job template
+func (jobTemplate *JobTemplate) LaunchJobTemplate(id int32, launchData []byte) (schemaResponse JobTemplateResponseSingleSchema, err error) {
 	uri := fmt.Sprintf("%s%d/launch/", jobTemplate.URI, id)
-	response, err := jobTemplate.connection.Post(uri, nil)
+	response, err := jobTemplate.connection.Post(uri, launchData)
 
 	if err != nil {
 		return JobTemplateResponseSingleSchema{}, err
