@@ -75,7 +75,7 @@ func (dc *DataConverter) StructToYAMLString(structData any) (yamlString string, 
 		return "", errors.New(fmt.Sprintf("error StructToYAMLString encoder.Encode %v", err))
 	}
 
-	return destinationString.String(), nil
+	return fmt.Sprintf("---\n%s", destinationString.String()), nil
 
 }
 

@@ -4,17 +4,18 @@ Package jobs provides a way to manipulate jobs for Ansible AAP
 package jobs
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
+	"github.com/btr1975/go-ansible-aap-api-client/pkg/dataconversion"
 	"io"
 	"log"
 )
 
 // Job represents an AAP job
 type Job struct {
-	URI        string
-	connection connection.BasicConnection
+	URI            string
+	connection     connection.BasicConnection
+	DataConversion dataconversion.DataConverterInterface
 }
 
 // NewJob creates a new job instance
@@ -22,25 +23,26 @@ type Job struct {
 //	:param basicConnection: The basic connection to use
 func NewJob(basicConnection connection.BasicConnection) *Job {
 	return &Job{
-		URI:        "jobs/",
-		connection: basicConnection,
+		URI:            "jobs/",
+		connection:     basicConnection,
+		DataConversion: dataconversion.NewDataConverter(),
 	}
 }
 
 // GetAllJobs gets all jobs
 func (job *Job) GetAllJobs() (schemaResponse JobResponseSchema, err error) {
+	schemaResponse = JobResponseSchema{}
+
 	response, err := job.connection.Get(job.URI, nil)
 
 	if err != nil {
-		return JobResponseSchema{}, err
+		return schemaResponse, err
 	}
 
-	schemaResponse = JobResponseSchema{}
-
-	err = json.NewDecoder(response.Body).Decode(&schemaResponse)
+	err = job.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
 
 	if err != nil {
-		return JobResponseSchema{}, err
+		return schemaResponse, err
 	}
 
 	return schemaResponse, nil
@@ -50,19 +52,19 @@ func (job *Job) GetAllJobs() (schemaResponse JobResponseSchema, err error) {
 //
 //	:param id: The ID of the job to get
 func (job *Job) GetJob(id int32) (schemaResponse JobResponseSingleSchema, err error) {
+	schemaResponse = JobResponseSingleSchema{}
+
 	uri := fmt.Sprintf("%s%d/", job.URI, id)
 	response, err := job.connection.Get(uri, nil)
 
 	if err != nil {
-		return JobResponseSingleSchema{}, err
+		return schemaResponse, err
 	}
 
-	schemaResponse = JobResponseSingleSchema{}
-
-	err = json.NewDecoder(response.Body).Decode(&schemaResponse)
+	err = job.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
 
 	if err != nil {
-		return JobResponseSingleSchema{}, err
+		return schemaResponse, err
 	}
 
 	return schemaResponse, nil

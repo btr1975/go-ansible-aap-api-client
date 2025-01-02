@@ -7,12 +7,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
+	"github.com/btr1975/go-ansible-aap-api-client/pkg/dataconversion"
 )
 
 // JobTemplate represents an AAP job template
 type JobTemplate struct {
-	URI        string
-	connection connection.BasicConnection
+	URI            string
+	connection     connection.BasicConnection
+	DataConversion dataconversion.DataConverterInterface
 }
 
 // NewJobTemplate creates a new job template instance
@@ -20,25 +22,26 @@ type JobTemplate struct {
 //	:param basicConnection: The basic connection to use
 func NewJobTemplate(basicConnection connection.BasicConnection) *JobTemplate {
 	return &JobTemplate{
-		URI:        "job_templates/",
-		connection: basicConnection,
+		URI:            "job_templates/",
+		connection:     basicConnection,
+		DataConversion: dataconversion.NewDataConverter(),
 	}
 }
 
 // GetAllJobTemplates gets all job templates
 func (jobTemplate *JobTemplate) GetAllJobTemplates() (schemaResponse JobTemplateResponseSchema, err error) {
+	schemaResponse = JobTemplateResponseSchema{}
+
 	response, err := jobTemplate.connection.Get(jobTemplate.URI, nil)
 
 	if err != nil {
-		return JobTemplateResponseSchema{}, err
+		return schemaResponse, err
 	}
 
-	schemaResponse = JobTemplateResponseSchema{}
-
-	err = json.NewDecoder(response.Body).Decode(&schemaResponse)
+	err = jobTemplate.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
 
 	if err != nil {
-		return JobTemplateResponseSchema{}, err
+		return schemaResponse, err
 	}
 
 	return schemaResponse, nil
@@ -48,6 +51,8 @@ func (jobTemplate *JobTemplate) GetAllJobTemplates() (schemaResponse JobTemplate
 //
 //	:param name: The name of the job template to get
 func (jobTemplate *JobTemplate) GetJobTemplate(name string) (schemaResponse JobTemplateResponseSchema, err error) {
+	schemaResponse = JobTemplateResponseSchema{}
+
 	params := map[string]string{
 		"name": name,
 	}
@@ -55,15 +60,13 @@ func (jobTemplate *JobTemplate) GetJobTemplate(name string) (schemaResponse JobT
 	response, err := jobTemplate.connection.Get(jobTemplate.URI, params)
 
 	if err != nil {
-		return JobTemplateResponseSchema{}, err
+		return schemaResponse, err
 	}
 
-	schemaResponse = JobTemplateResponseSchema{}
-
-	err = json.NewDecoder(response.Body).Decode(&schemaResponse)
+	err = jobTemplate.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
 
 	if err != nil {
-		return JobTemplateResponseSchema{}, err
+		return schemaResponse, err
 	}
 
 	return schemaResponse, nil
@@ -93,26 +96,26 @@ func (jobTemplate *JobTemplate) GetJobTemplateID(name string) (id int32, err err
 //	:param id: The ID of the job template to launch
 //	:param launchData: The struct to use for the launch data
 func (jobTemplate *JobTemplate) LaunchJobTemplate(id int32, launchData any) (schemaResponse JobTemplateResponseSingleSchema, err error) {
+	schemaResponse = JobTemplateResponseSingleSchema{}
+
 	uri := fmt.Sprintf("%s%d/launch/", jobTemplate.URI, id)
 
 	jsonData, err := json.Marshal(launchData)
 
 	if err != nil {
-		return JobTemplateResponseSingleSchema{}, err
+		return schemaResponse, err
 	}
 
 	response, err := jobTemplate.connection.Post(uri, jsonData)
 
 	if err != nil {
-		return JobTemplateResponseSingleSchema{}, err
+		return schemaResponse, err
 	}
 
-	schemaResponse = JobTemplateResponseSingleSchema{}
-
-	err = json.NewDecoder(response.Body).Decode(&schemaResponse)
+	err = jobTemplate.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
 
 	if err != nil {
-		return JobTemplateResponseSingleSchema{}, err
+		return schemaResponse, err
 	}
 
 	return schemaResponse, nil

@@ -7,13 +7,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
-	"net/http"
+	"github.com/btr1975/go-ansible-aap-api-client/pkg/dataconversion"
 )
 
 // Organization represents an AAP organization
 type Organization struct {
-	URI        string
-	connection connection.BasicConnection
+	URI            string
+	connection     connection.BasicConnection
+	DataConversion dataconversion.DataConverterInterface
 }
 
 // NewOrganization creates a new organization instance
@@ -21,25 +22,26 @@ type Organization struct {
 //	:param basicConnection: The basic connection to use
 func NewOrganization(basicConnection connection.BasicConnection) *Organization {
 	return &Organization{
-		URI:        "organizations/",
-		connection: basicConnection,
+		URI:            "organizations/",
+		connection:     basicConnection,
+		DataConversion: dataconversion.NewDataConverter(),
 	}
 }
 
 // GetAllOrganizations gets all organizations
 func (organization *Organization) GetAllOrganizations() (schemaResponse OrganizationResponseSchema, err error) {
+	schemaResponse = OrganizationResponseSchema{}
+
 	response, err := organization.connection.Get(organization.URI, nil)
 
 	if err != nil {
-		return OrganizationResponseSchema{}, err
+		return schemaResponse, err
 	}
 
-	schemaResponse = OrganizationResponseSchema{}
-
-	err = json.NewDecoder(response.Body).Decode(&schemaResponse)
+	err = organization.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
 
 	if err != nil {
-		return OrganizationResponseSchema{}, err
+		return schemaResponse, err
 	}
 
 	return schemaResponse, nil
@@ -49,6 +51,8 @@ func (organization *Organization) GetAllOrganizations() (schemaResponse Organiza
 //
 //	:param name: The name of the organization to get
 func (organization *Organization) GetOrganization(name string) (schemaResponse OrganizationResponseSchema, err error) {
+	schemaResponse = OrganizationResponseSchema{}
+
 	params := map[string]string{
 		"name": name,
 	}
@@ -56,15 +60,13 @@ func (organization *Organization) GetOrganization(name string) (schemaResponse O
 	response, err := organization.connection.Get(organization.URI, params)
 
 	if err != nil {
-		return OrganizationResponseSchema{}, err
+		return schemaResponse, err
 	}
 
-	schemaResponse = OrganizationResponseSchema{}
-
-	err = json.NewDecoder(response.Body).Decode(&schemaResponse)
+	err = organization.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
 
 	if err != nil {
-		return OrganizationResponseSchema{}, err
+		return schemaResponse, err
 	}
 
 	return schemaResponse, nil
@@ -110,27 +112,55 @@ func (organization *Organization) DeleteOrganization(id int32) (statusCode int, 
 //
 //	:param id: The ID of the organization to update
 //	:param orgRequest: The organization request schema to use
-func (organization *Organization) UpdateOrganization(id int32, orgRequest OrganizationRequestSchema) (response *http.Response, err error) {
+func (organization *Organization) UpdateOrganization(id int32, orgRequest OrganizationRequestSchema) (schemaResponse OrganizationResponseSingleSchema, err error) {
+	schemaResponse = OrganizationResponseSingleSchema{}
+
 	uri := fmt.Sprintf("%s%d/", organization.URI, id)
 
 	data, err := json.Marshal(orgRequest)
 
 	if err != nil {
-		return nil, err
+		return schemaResponse, err
 	}
 
-	return organization.connection.Patch(uri, data)
+	response, err := organization.connection.Patch(uri, data)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	err = organization.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	return schemaResponse, nil
 }
 
 // CreateOrganization creates an organization
 //
 //	:param orgRequest: The organization request schema to use
-func (organization *Organization) CreateOrganization(orgRequest OrganizationRequestSchema) (response *http.Response, err error) {
+func (organization *Organization) CreateOrganization(orgRequest OrganizationRequestSchema) (schemaResponse OrganizationResponseSingleSchema, err error) {
+	schemaResponse = OrganizationResponseSingleSchema{}
+
 	data, err := json.Marshal(orgRequest)
 
 	if err != nil {
-		return nil, err
+		return schemaResponse, err
 	}
 
-	return organization.connection.Post(organization.URI, data)
+	response, err := organization.connection.Post(organization.URI, data)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	err = organization.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	return schemaResponse, nil
 }
