@@ -7,14 +7,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
+	"github.com/btr1975/go-ansible-aap-api-client/pkg/dataconversion"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/hosts"
 	"net/http"
 )
 
 // Inventory represents an AAP inventory
 type Inventory struct {
-	URI        string
-	connection connection.BasicConnection
+	URI            string
+	connection     connection.BasicConnection
+	DataConversion dataconversion.DataConverterInterface
 }
 
 // NewInventory creates a new inventory instance
@@ -22,25 +24,26 @@ type Inventory struct {
 // :param basicConnection: The basic connection to use
 func NewInventory(basicConnection connection.BasicConnection) *Inventory {
 	return &Inventory{
-		URI:        "inventories/",
-		connection: basicConnection,
+		URI:            "inventories/",
+		connection:     basicConnection,
+		DataConversion: dataconversion.NewDataConverter(),
 	}
 }
 
 // GetAllInventories gets all inventories
 func (inventory *Inventory) GetAllInventories() (schemaResponse InventoryResponseSchema, err error) {
+	schemaResponse = InventoryResponseSchema{}
+
 	response, err := inventory.connection.Get(inventory.URI, nil)
 
 	if err != nil {
-		return InventoryResponseSchema{}, err
+		return schemaResponse, err
 	}
 
-	schemaResponse = InventoryResponseSchema{}
-
-	err = json.NewDecoder(response.Body).Decode(&schemaResponse)
+	err = inventory.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
 
 	if err != nil {
-		return InventoryResponseSchema{}, err
+		return schemaResponse, err
 	}
 
 	return schemaResponse, nil
@@ -50,6 +53,8 @@ func (inventory *Inventory) GetAllInventories() (schemaResponse InventoryRespons
 //
 //	:param name: The name of the inventory to get
 func (inventory *Inventory) GetInventory(name string) (schemaResponse InventoryResponseSchema, err error) {
+	schemaResponse = InventoryResponseSchema{}
+
 	params := map[string]string{
 		"name": name,
 	}
@@ -57,15 +62,13 @@ func (inventory *Inventory) GetInventory(name string) (schemaResponse InventoryR
 	response, err := inventory.connection.Get(inventory.URI, params)
 
 	if err != nil {
-		return InventoryResponseSchema{}, err
+		return schemaResponse, err
 	}
 
-	schemaResponse = InventoryResponseSchema{}
-
-	err = json.NewDecoder(response.Body).Decode(&schemaResponse)
+	err = inventory.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
 
 	if err != nil {
-		return InventoryResponseSchema{}, err
+		return schemaResponse, err
 	}
 
 	return schemaResponse, nil
@@ -113,29 +116,57 @@ func (inventory *Inventory) DeleteInventory(id int32) (statusCode int, err error
 //
 //	:param id: The ID of the inventory to update
 //	:param inventoryRequest: The inventory request schema to use
-func (inventory *Inventory) UpdateInventory(id int32, inventoryRequest InventoryRequestSchema) (response *http.Response, err error) {
+func (inventory *Inventory) UpdateInventory(id int32, inventoryRequest InventoryRequestSchema) (schemaResponse InventoryResponseSingleSchema, err error) {
+	schemaResponse = InventoryResponseSingleSchema{}
+
 	uri := fmt.Sprintf("%s%d/", inventory.URI, id)
 
 	data, err := json.Marshal(inventoryRequest)
 
 	if err != nil {
-		return nil, err
+		return schemaResponse, err
 	}
 
-	return inventory.connection.Patch(uri, data)
+	response, err := inventory.connection.Patch(uri, data)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	err = inventory.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	return schemaResponse, nil
 }
 
 // CreateInventory creates a new inventory
 //
 //	:param inventoryRequest: The inventory request schema to use
-func (inventory *Inventory) CreateInventory(inventoryRequest InventoryRequestSchema) (response *http.Response, err error) {
+func (inventory *Inventory) CreateInventory(inventoryRequest InventoryRequestSchema) (schemaResponse InventoryResponseSingleSchema, err error) {
+	schemaResponse = InventoryResponseSingleSchema{}
+
 	data, err := json.Marshal(inventoryRequest)
 
 	if err != nil {
-		return nil, err
+		return schemaResponse, err
 	}
 
-	return inventory.connection.Post(inventory.URI, data)
+	response, err := inventory.connection.Post(inventory.URI, data)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	err = inventory.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	return schemaResponse, nil
 }
 
 // AddHostToInventory adds a host to an inventory

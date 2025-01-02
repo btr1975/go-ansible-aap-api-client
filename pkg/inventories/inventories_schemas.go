@@ -2,13 +2,13 @@ package inventories
 
 // InventoryRequestSchema is the schema for an inventory request
 type InventoryRequestSchema struct {
-	Name                         string            `json:"name"`
-	Description                  string            `json:"description"`
-	Organization                 int32             `json:"organization"`
-	Kind                         string            `json:"kind"`
-	HostFilter                   string            `json:"host_filter"`
-	Variables                    map[string]string `json:"variables"`
-	PreventInstanceGroupFallback bool              `json:"prevent_instance_group_fallback"`
+	Name                         string `json:"name"`
+	Description                  string `json:"description"`
+	Organization                 int32  `json:"organization"`
+	Kind                         string `json:"kind"`
+	HostFilter                   string `json:"host_filter"`
+	Variables                    string `json:"variables"`
+	PreventInstanceGroupFallback bool   `json:"prevent_instance_group_fallback"`
 }
 
 // InventoryHostRequestSchema is the schema for an inventory host request
@@ -48,7 +48,6 @@ type InventoryResponseSingleSchema struct {
 	URL     string                         `json:"url"`
 	Related InventoryRelatedResponseSchema `json:"related"`
 	InventoryRequestSchema
-	Variables                    string `json:"variables"` // Redefine this as a string
 	Created                      string `json:"created"`
 	Modified                     string `json:"modified"`
 	HasActiveFailures            bool   `json:"has_active_failures"`

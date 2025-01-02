@@ -2,10 +2,10 @@ package groups
 
 // GroupRequestSchema is the schema for an group request
 type GroupRequestSchema struct {
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	Inventory   int32             `json:"inventory"`
-	Variables   map[string]string `json:"variables"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Inventory   int32  `json:"inventory"`
+	Variables   string `json:"variables"`
 }
 
 // GroupRelatedResponseSchema is the schema for the related section of a response
@@ -32,9 +32,8 @@ type GroupResponseSingleSchema struct {
 	URL     string                     `json:"url"`
 	Related GroupRelatedResponseSchema `json:"related"`
 	GroupRequestSchema
-	Variables string `json:"variables"` // Redefine this as a string
-	Created   string `json:"created"`
-	Modified  string `json:"modified"`
+	Created  string `json:"created"`
+	Modified string `json:"modified"`
 }
 
 // GroupResponseSchema is the schema for an groups response
@@ -43,4 +42,12 @@ type GroupResponseSchema struct {
 	Next     string                      `json:"next"`
 	Previous string                      `json:"previous"`
 	Results  []GroupResponseSingleSchema `json:"results"`
+}
+
+// GroupGeneralNetwork is the schema for general network device group vars
+type GroupGeneralNetwork struct {
+	AnsibleConnection   string `json:"ansible_connection"`
+	AnsibleBecome       bool   `json:"ansible_become"`
+	AnsibleBecomeMethod string `json:"ansible_become_method"`
+	AnsibleNetworkOS    string `json:"ansible_network_os"`
 }

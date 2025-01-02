@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/yaml.v3"
+	"net/http"
 	"reflect"
 	"strings"
 )
@@ -18,6 +19,7 @@ type DataConverterInterface interface {
 	JSONStringToStruct(structData any, jsonString string) (err error)
 	StructToYAMLString(structData any) (yamlString string, err error)
 	YAMLStringToStruct(structData any, yamlString string) (err error)
+	ResponseBodyToStruct(structData any, response http.Response) (err error)
 }
 
 type DataConverter struct{}
@@ -95,4 +97,23 @@ func (dc *DataConverter) YAMLStringToStruct(structData any, yamlString string) (
 
 	return nil
 
+}
+
+// ResponseBodyToStruct converts a http.Response to a struct
+//
+//	:param structData: The struct to use to convert
+//	:param response: The http.Response to convert
+func (dc *DataConverter) ResponseBodyToStruct(structData any, response http.Response) (err error) {
+	if reflect.ValueOf(structData).Kind() != reflect.Ptr {
+		return errors.New("error ResponseBodyToStruct structData must be a pointer")
+	}
+
+	decoder := json.NewDecoder(response.Body)
+	err = decoder.Decode(structData)
+
+	if err != nil {
+		return errors.New(fmt.Sprintf("error ResponseBodyToStruct decoder.Decode %v", err))
+	}
+
+	return nil
 }

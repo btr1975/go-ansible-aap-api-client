@@ -7,14 +7,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
+	"github.com/btr1975/go-ansible-aap-api-client/pkg/dataconversion"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/hosts"
 	"net/http"
 )
 
 // Group represents an AAP group
 type Group struct {
-	URI        string
-	connection connection.BasicConnection
+	URI            string
+	connection     connection.BasicConnection
+	DataConversion dataconversion.DataConverterInterface
 }
 
 // NewGroup creates a new group instance
@@ -22,25 +24,26 @@ type Group struct {
 //	:param basicConnection: The basic connection to use
 func NewGroup(basicConnection connection.BasicConnection) *Group {
 	return &Group{
-		URI:        "groups/",
-		connection: basicConnection,
+		URI:            "groups/",
+		connection:     basicConnection,
+		DataConversion: dataconversion.NewDataConverter(),
 	}
 }
 
 // GetAllGroups gets all groups
 func (group *Group) GetAllGroups() (schemaResponse GroupResponseSchema, err error) {
+	schemaResponse = GroupResponseSchema{}
+
 	response, err := group.connection.Get(group.URI, nil)
 
 	if err != nil {
-		return GroupResponseSchema{}, err
+		return schemaResponse, err
 	}
 
-	schemaResponse = GroupResponseSchema{}
-
-	err = json.NewDecoder(response.Body).Decode(&schemaResponse)
+	err = group.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
 
 	if err != nil {
-		return GroupResponseSchema{}, err
+		return schemaResponse, err
 	}
 
 	return schemaResponse, nil
@@ -50,6 +53,8 @@ func (group *Group) GetAllGroups() (schemaResponse GroupResponseSchema, err erro
 //
 //	:param name: The name of the group to get
 func (group *Group) GetGroup(name string) (schemaResponse GroupResponseSchema, err error) {
+	schemaResponse = GroupResponseSchema{}
+
 	params := map[string]string{
 		"name": name,
 	}
@@ -57,15 +62,13 @@ func (group *Group) GetGroup(name string) (schemaResponse GroupResponseSchema, e
 	response, err := group.connection.Get(group.URI, params)
 
 	if err != nil {
-		return GroupResponseSchema{}, err
+		return schemaResponse, err
 	}
 
-	schemaResponse = GroupResponseSchema{}
-
-	err = json.NewDecoder(response.Body).Decode(&schemaResponse)
+	err = group.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
 
 	if err != nil {
-		return GroupResponseSchema{}, err
+		return schemaResponse, err
 	}
 
 	return schemaResponse, nil
@@ -75,26 +78,18 @@ func (group *Group) GetGroup(name string) (schemaResponse GroupResponseSchema, e
 //
 //	:param name: The name of the group to get
 func (group *Group) GetGroupID(name string) (id int32, err error) {
-	params := map[string]string{
-		"name": name,
-	}
-
-	response, err := group.connection.Get(group.URI, params)
+	schemaResponse, err := group.GetGroup(name)
 
 	if err != nil {
 		return 0, err
 	}
 
-	schemaResponse := GroupResponseSchema{}
-
-	err = json.NewDecoder(response.Body).Decode(&schemaResponse)
-
-	if err != nil {
-		return 0, err
+	if len(schemaResponse.Results) > 1 {
+		return 0, fmt.Errorf("more than one group found with name %s", name)
 	}
 
 	if len(schemaResponse.Results) == 0 {
-		return 0, nil
+		return 0, fmt.Errorf("no group found with name %s", name)
 	}
 
 	return schemaResponse.Results[0].ID, nil
@@ -120,16 +115,30 @@ func (group *Group) DeleteGroup(id int32) (statusCode int, err error) {
 //
 //	:param id: The ID of the group to update
 //	:param groupRequest: The group request to use
-func (group *Group) UpdateGroup(id int32, groupRequest GroupRequestSchema) (response *http.Response, err error) {
+func (group *Group) UpdateGroup(id int32, groupRequest GroupRequestSchema) (schemaResponse GroupResponseSingleSchema, err error) {
+	schemaResponse = GroupResponseSingleSchema{}
+
 	uri := fmt.Sprintf("%s%d/", group.URI, id)
 
 	data, err := json.Marshal(groupRequest)
 
 	if err != nil {
-		return nil, err
+		return schemaResponse, err
 	}
 
-	return group.connection.Patch(uri, data)
+	response, err := group.connection.Patch(uri, data)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	err = group.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	return schemaResponse, nil
 }
 
 func (group *Group) AddHostToGroup(id int32, schema hosts.HostRequestSchema) (response *http.Response, err error) {

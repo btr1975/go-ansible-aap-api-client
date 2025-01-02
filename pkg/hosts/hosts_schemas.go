@@ -2,12 +2,12 @@ package hosts
 
 // HostRequestSchema is the schema for an host request
 type HostRequestSchema struct {
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	Inventory   int32             `json:"inventory"`
-	Enabled     bool              `json:"enabled"`
-	InstanceID  string            `json:"instance_id"`
-	Variables   map[string]string `json:"variables"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Inventory   int32  `json:"inventory"`
+	Enabled     bool   `json:"enabled"`
+	InstanceID  string `json:"instance_id"`
+	Variables   string `json:"variables"`
 }
 
 // HostRelatedResponseSchema is the schema for the related section of a response
@@ -37,7 +37,6 @@ type HostResponseSingleSchema struct {
 	URL     string                    `json:"url"`
 	Related HostRelatedResponseSchema `json:"related"`
 	HostRequestSchema
-	Variables            string `json:"variables"` // Redefine this as a string
 	Created              string `json:"created"`
 	Modified             string `json:"modified"`
 	HasActiveFailures    bool   `json:"has_active_failures"`
