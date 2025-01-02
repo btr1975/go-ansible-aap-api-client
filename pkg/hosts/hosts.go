@@ -7,13 +7,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
-	"net/http"
+	"github.com/btr1975/go-ansible-aap-api-client/pkg/dataconversion"
 )
 
 // Host represents an AAP host
 type Host struct {
-	URI        string
-	connection connection.BasicConnection
+	URI            string
+	connection     connection.BasicConnection
+	DataConversion dataconversion.DataConverterInterface
 }
 
 // NewHost creates a new host instance
@@ -21,25 +22,26 @@ type Host struct {
 //	:param basicConnection: The basic connection to use
 func NewHost(basicConnection connection.BasicConnection) *Host {
 	return &Host{
-		URI:        "hosts/",
-		connection: basicConnection,
+		URI:            "hosts/",
+		connection:     basicConnection,
+		DataConversion: dataconversion.NewDataConverter(),
 	}
 }
 
 // GetAllHosts gets all hosts
 func (host *Host) GetAllHosts() (schemaResponse HostResponseSchema, err error) {
+	schemaResponse = HostResponseSchema{}
+
 	response, err := host.connection.Get(host.URI, nil)
 
 	if err != nil {
-		return HostResponseSchema{}, err
+		return schemaResponse, err
 	}
 
-	schemaResponse = HostResponseSchema{}
-
-	err = json.NewDecoder(response.Body).Decode(&schemaResponse)
+	err = host.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
 
 	if err != nil {
-		return HostResponseSchema{}, err
+		return schemaResponse, err
 	}
 
 	return schemaResponse, nil
@@ -49,6 +51,8 @@ func (host *Host) GetAllHosts() (schemaResponse HostResponseSchema, err error) {
 //
 //	:param name: The name of the host to get
 func (host *Host) GetHost(name string) (schemaResponse HostResponseSchema, err error) {
+	schemaResponse = HostResponseSchema{}
+
 	params := map[string]string{
 		"name": name,
 	}
@@ -56,15 +60,13 @@ func (host *Host) GetHost(name string) (schemaResponse HostResponseSchema, err e
 	response, err := host.connection.Get(host.URI, params)
 
 	if err != nil {
-		return HostResponseSchema{}, err
+		return schemaResponse, err
 	}
 
-	schemaResponse = HostResponseSchema{}
-
-	err = json.NewDecoder(response.Body).Decode(&schemaResponse)
+	err = host.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
 
 	if err != nil {
-		return HostResponseSchema{}, err
+		return schemaResponse, err
 	}
 
 	return schemaResponse, nil
@@ -74,26 +76,18 @@ func (host *Host) GetHost(name string) (schemaResponse HostResponseSchema, err e
 //
 //	:param name: The name of the host to get
 func (host *Host) GetHostID(name string) (id int32, err error) {
-	params := map[string]string{
-		"name": name,
-	}
-
-	response, err := host.connection.Get(host.URI, params)
+	schemaResponse, err := host.GetHost(name)
 
 	if err != nil {
 		return 0, err
 	}
 
-	schemaResponse := HostResponseSchema{}
-
-	err = json.NewDecoder(response.Body).Decode(&schemaResponse)
-
-	if err != nil {
-		return 0, err
+	if len(schemaResponse.Results) > 1 {
+		return 0, fmt.Errorf("more than one host found with name %s", name)
 	}
 
 	if len(schemaResponse.Results) == 0 {
-		return 0, nil
+		return 0, fmt.Errorf("no host found with name %s", name)
 	}
 
 	return schemaResponse.Results[0].ID, nil
@@ -120,14 +114,28 @@ func (host *Host) DeleteHost(id int32) (statusCode int, err error) {
 //
 //	:param id: The ID of the host to update
 //	:param hostRequest: The host request to use
-func (host *Host) UpdateHost(id int32, hostRequest HostRequestSchema) (response *http.Response, err error) {
+func (host *Host) UpdateHost(id int32, hostRequest HostRequestSchema) (schemaResponse HostResponseSingleSchema, err error) {
+	schemaResponse = HostResponseSingleSchema{}
+
 	uri := fmt.Sprintf("%s%d/", host.URI, id)
 
 	data, err := json.Marshal(hostRequest)
 
 	if err != nil {
-		return nil, err
+		return schemaResponse, err
 	}
 
-	return host.connection.Patch(uri, data)
+	response, err := host.connection.Patch(uri, data)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	err = host.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	return schemaResponse, nil
 }

@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/dataconversion"
+	"github.com/btr1975/go-ansible-aap-api-client/pkg/groups"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/hosts"
-	"net/http"
 )
 
 // Inventory represents an AAP inventory
@@ -173,15 +173,60 @@ func (inventory *Inventory) CreateInventory(inventoryRequest InventoryRequestSch
 //
 //	:param id: The ID of the inventory to add the host to
 //	:param hostRequest: The host request schema to use
-func (inventory *Inventory) AddHostToInventory(id int32, hostRequest hosts.HostRequestSchema) (response *http.Response, err error) {
+func (inventory *Inventory) AddHostToInventory(id int32, hostRequest hosts.HostRequestSchema) (schemaResponse hosts.HostResponseSingleSchema, err error) {
+	schemaResponse = hosts.HostResponseSingleSchema{}
+
 	uri := fmt.Sprintf("%s%d/hosts/", inventory.URI, id)
 
 	data, err := json.Marshal(hostRequest)
 
 	if err != nil {
-		return nil, err
+		return schemaResponse, err
 	}
 
-	return inventory.connection.Post(uri, data)
+	response, err := inventory.connection.Post(uri, data)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	err = inventory.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	return schemaResponse, nil
+
+}
+
+// AddGroupToInventory adds a group to an inventory
+//
+//	:param id: The ID of the inventory to add the group to
+//	:param groupRequest: The group request schema to use
+func (inventory *Inventory) AddGroupToInventory(id int32, groupRequest groups.GroupRequestSchema) (schemaResponse groups.GroupResponseSingleSchema, err error) {
+	schemaResponse = groups.GroupResponseSingleSchema{}
+
+	uri := fmt.Sprintf("%s%d/groups/", inventory.URI, id)
+
+	data, err := json.Marshal(groupRequest)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	response, err := inventory.connection.Post(uri, data)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	err = inventory.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	return schemaResponse, nil
 
 }
