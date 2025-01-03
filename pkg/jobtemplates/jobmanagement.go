@@ -10,15 +10,15 @@ import (
 
 // JobManagement represents an AAP job management object
 type JobManagement struct {
-	connection          connection.BasicConnection
-	inventoryManagement *inventories.InventoryManagement
-	jobTemplate         *JobTemplate
-	job                 *jobs.Job
-	jobID               int32
-	jobTemplateName     string
-	jobTemplateID       int32
-	inventoryName       string
-	inventoryID         int32
+	connection      connection.BasicConnection
+	inventory       *inventories.Inventory
+	jobTemplate     *JobTemplate
+	job             *jobs.Job
+	jobID           int32
+	jobTemplateName string
+	jobTemplateID   int32
+	inventoryName   string
+	inventoryID     int32
 }
 
 // NewJobManagement creates a new job management instance
@@ -26,17 +26,18 @@ type JobManagement struct {
 //	:param basicConnection: The basic connection to use
 func NewJobManagement(basicConnection connection.BasicConnection, jobTemplateName string, inventoryName string) *JobManagement {
 	return &JobManagement{
-		connection:          basicConnection,
-		inventoryManagement: inventories.NewInventoryManagement(basicConnection),
-		jobTemplate:         NewJobTemplate(basicConnection),
-		job:                 jobs.NewJob(basicConnection),
-		jobTemplateName:     jobTemplateName,
-		inventoryName:       inventoryName,
+		connection:      basicConnection,
+		inventory:       inventories.NewInventory(basicConnection),
+		jobTemplate:     NewJobTemplate(basicConnection),
+		job:             jobs.NewJob(basicConnection),
+		jobTemplateName: jobTemplateName,
+		inventoryName:   inventoryName,
 	}
 }
 
 // Run runs a job
-func (jobManagement *JobManagement) Run(launchData JobTemplateSimpleRequestSchema) (err error) {
+func (jobManagement *JobManagement) Run(launchData JobTemplateSimpleRequestSchema, inventoryID int32) (err error) {
+
 	jobManagement.jobTemplateID, err = jobManagement.jobTemplate.GetJobTemplateID(jobManagement.jobTemplateName)
 
 	fmt.Printf("Template ID %d\n", jobManagement.jobTemplateID)
@@ -45,7 +46,7 @@ func (jobManagement *JobManagement) Run(launchData JobTemplateSimpleRequestSchem
 		return err
 	}
 
-	jobManagement.inventoryID, err = jobManagement.inventoryManagement.Inventory.GetInventoryID(jobManagement.inventoryName)
+	jobManagement.inventoryID, err = jobManagement.inventory.GetInventoryID(jobManagement.inventoryName)
 
 	fmt.Printf("Inventory ID %d\n", jobManagement.inventoryID)
 
@@ -53,7 +54,7 @@ func (jobManagement *JobManagement) Run(launchData JobTemplateSimpleRequestSchem
 		return err
 	}
 
-	launchData.Inventory = jobManagement.inventoryID
+	launchData.Inventory = inventoryID
 
 	fmt.Printf("launchData %v\n", launchData)
 
@@ -76,14 +77,18 @@ func (jobManagement *JobManagement) PollCompletion(printStatus bool, launchData 
 
 	fmt.Printf("POOP %d", jobManagement.jobID)
 
-	if jobManagement.jobID == 0 {
+	/*
 
-		err = jobManagement.Run(launchData)
+		if jobManagement.jobID == 0 {
 
-		if err != nil {
-			return jobStatus, err
+			err = jobManagement.Run(launchData)
+
+			if err != nil {
+				return jobStatus, err
+			}
 		}
-	}
+
+	*/
 
 	if printStatus {
 		fmt.Printf("Polling Job ID %d current status %s", jobManagement.jobID, jobStatus)

@@ -109,6 +109,7 @@ func (dc *DataConverter) ResponseBodyToStruct(structData any, response http.Resp
 	}
 
 	decoder := json.NewDecoder(response.Body)
+	defer response.Body.Close()
 	err = decoder.Decode(structData)
 
 	if err != nil {

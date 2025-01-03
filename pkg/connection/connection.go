@@ -194,6 +194,7 @@ func (connection *Connection) Get(uri string, params map[string]string) (respons
 
 	if !connection.checkOK(response) {
 		body, _ := io.ReadAll(response.Body)
+		defer response.Body.Close()
 		return nil, fmt.Errorf("error GET response code %d, detail: %s", response.StatusCode, string(body))
 	}
 
@@ -227,6 +228,7 @@ func (connection *Connection) Post(uri string, data []byte) (response *http.Resp
 
 	if !connection.checkOK(response) {
 		body, _ := io.ReadAll(response.Body)
+		defer response.Body.Close()
 		return nil, fmt.Errorf("error POST response code %d, detail: %s", response.StatusCode, string(body))
 	}
 
@@ -259,6 +261,7 @@ func (connection *Connection) Patch(uri string, data []byte) (response *http.Res
 
 	if !connection.checkOK(response) {
 		body, _ := io.ReadAll(response.Body)
+		defer response.Body.Close()
 		return nil, fmt.Errorf("error PATCH response code %d, detail: %s", response.StatusCode, string(body))
 	}
 
@@ -291,6 +294,7 @@ func (connection *Connection) Delete(uri string, data []byte) (response *http.Re
 
 	if !connection.checkOK(response) {
 		body, _ := io.ReadAll(response.Body)
+		defer response.Body.Close()
 		return nil, fmt.Errorf("error DELETE response code %d, detail: %s", response.StatusCode, string(body))
 	}
 
