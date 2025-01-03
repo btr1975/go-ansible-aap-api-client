@@ -1,6 +1,6 @@
 package jobtemplates
 
-// JobTemplateRequestSchema is the schema for an job templates request
+// JobTemplateRequestSchema is the schema for a job templates request
 type JobTemplateRequestSchema struct {
 	Name                            string `json:"name" yaml:"name"`
 	Description                     string `json:"description" yaml:"description"`
@@ -45,6 +45,12 @@ type JobTemplateRequestSchema struct {
 	WebhookService                  string `json:"webhook_service" yaml:"webhook_service"`
 	WebhookCredential               string `json:"webhook_credential" yaml:"webhook_credential"`
 	PreventInstanceGroupFallback    bool   `json:"prevent_instance_group_fallback" yaml:"prevent_instance_group_fallback"`
+}
+
+// JobTemplateSimpleRequestSchema is the schema for a simple job templates request
+type JobTemplateSimpleRequestSchema struct {
+	Inventory int32  `json:"inventory" yaml:"inventory"`
+	ExtraVars string `json:"extra_vars" yaml:"extra_vars"`
 }
 
 // JobTemplateRelatedResponseSchema is the schema for the related section of a response
