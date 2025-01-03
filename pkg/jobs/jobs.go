@@ -8,7 +8,6 @@ import (
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/dataconversion"
 	"io"
-	"log"
 )
 
 // Job represents an AAP job
@@ -89,7 +88,7 @@ func (job *Job) GetJobStdOut(id int32, outputFormat string) (response string, er
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	return string(body), nil

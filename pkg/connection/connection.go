@@ -8,9 +8,11 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 )
 
 // BasicConnection is the basic connection interface
@@ -165,6 +167,7 @@ func (connection *Connection) checkOK(response *http.Response) bool {
 func (connection *Connection) Get(uri string, params map[string]string) (response *http.Response, err error) {
 	client := &http.Client{
 		Transport: connection.transport,
+		Timeout:   time.Second * 10,
 	}
 
 	if params != nil {
@@ -190,7 +193,8 @@ func (connection *Connection) Get(uri string, params map[string]string) (respons
 	}
 
 	if !connection.checkOK(response) {
-		return nil, fmt.Errorf("error GET response code %d", response.StatusCode)
+		body, _ := io.ReadAll(response.Body)
+		return nil, fmt.Errorf("error GET response code %d, detail: %s", response.StatusCode, string(body))
 	}
 
 	return response, err
@@ -204,6 +208,7 @@ func (connection *Connection) Get(uri string, params map[string]string) (respons
 func (connection *Connection) Post(uri string, data []byte) (response *http.Response, err error) {
 	client := &http.Client{
 		Transport: connection.transport,
+		Timeout:   time.Second * 10,
 	}
 
 	finalURL := connection.BaseURL.JoinPath(connection.APIVersion, uri)
@@ -221,7 +226,8 @@ func (connection *Connection) Post(uri string, data []byte) (response *http.Resp
 	}
 
 	if !connection.checkOK(response) {
-		return nil, fmt.Errorf("error POST response code %d", response.StatusCode)
+		body, _ := io.ReadAll(response.Body)
+		return nil, fmt.Errorf("error POST response code %d, detail: %s", response.StatusCode, string(body))
 	}
 
 	return response, err
@@ -234,6 +240,7 @@ func (connection *Connection) Post(uri string, data []byte) (response *http.Resp
 func (connection *Connection) Patch(uri string, data []byte) (response *http.Response, err error) {
 	client := &http.Client{
 		Transport: connection.transport,
+		Timeout:   time.Second * 10,
 	}
 
 	finalURL := connection.BaseURL.JoinPath(connection.APIVersion, uri)
@@ -251,7 +258,8 @@ func (connection *Connection) Patch(uri string, data []byte) (response *http.Res
 	}
 
 	if !connection.checkOK(response) {
-		return nil, fmt.Errorf("error PATCH response code %d", response.StatusCode)
+		body, _ := io.ReadAll(response.Body)
+		return nil, fmt.Errorf("error PATCH response code %d, detail: %s", response.StatusCode, string(body))
 	}
 
 	return response, err
@@ -264,6 +272,7 @@ func (connection *Connection) Patch(uri string, data []byte) (response *http.Res
 func (connection *Connection) Delete(uri string, data []byte) (response *http.Response, err error) {
 	client := &http.Client{
 		Transport: connection.transport,
+		Timeout:   time.Second * 10,
 	}
 
 	finalURL := connection.BaseURL.JoinPath(connection.APIVersion, uri)
@@ -281,7 +290,8 @@ func (connection *Connection) Delete(uri string, data []byte) (response *http.Re
 	}
 
 	if !connection.checkOK(response) {
-		return nil, fmt.Errorf("error DELETE response code %d", response.StatusCode)
+		body, _ := io.ReadAll(response.Body)
+		return nil, fmt.Errorf("error DELETE response code %d, detail: %s", response.StatusCode, string(body))
 	}
 
 	return response, err
