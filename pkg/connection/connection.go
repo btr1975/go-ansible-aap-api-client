@@ -147,6 +147,17 @@ func (connection *Connection) createRequest(method string, finalURL string, data
 
 }
 
+// checkOK checks if the response is OK
+//
+//	:param response: The response to check
+func (connection *Connection) checkOK(response *http.Response) bool {
+	if response.StatusCode >= 200 && response.StatusCode < 300 {
+		return true
+	}
+
+	return false
+}
+
 // Get performs a GET request
 //
 //	:param uri: The URI to use
@@ -174,6 +185,14 @@ func (connection *Connection) Get(uri string, params map[string]string) (respons
 
 	response, err = client.Do(request)
 
+	if err != nil {
+		return nil, err
+	}
+
+	if !connection.checkOK(response) {
+		return nil, fmt.Errorf("error GET response code %d", response.StatusCode)
+	}
+
 	return response, err
 
 }
@@ -197,6 +216,14 @@ func (connection *Connection) Post(uri string, data []byte) (response *http.Resp
 
 	response, err = client.Do(request)
 
+	if err != nil {
+		return nil, err
+	}
+
+	if !connection.checkOK(response) {
+		return nil, fmt.Errorf("error POST response code %d", response.StatusCode)
+	}
+
 	return response, err
 }
 
@@ -219,6 +246,14 @@ func (connection *Connection) Patch(uri string, data []byte) (response *http.Res
 
 	response, err = client.Do(request)
 
+	if err != nil {
+		return nil, err
+	}
+
+	if !connection.checkOK(response) {
+		return nil, fmt.Errorf("error PATCH response code %d", response.StatusCode)
+	}
+
 	return response, err
 }
 
@@ -240,6 +275,14 @@ func (connection *Connection) Delete(uri string, data []byte) (response *http.Re
 	}
 
 	response, err = client.Do(request)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !connection.checkOK(response) {
+		return nil, fmt.Errorf("error DELETE response code %d", response.StatusCode)
+	}
 
 	return response, err
 }
