@@ -1,5 +1,7 @@
 package inventories
 
+import "github.com/btr1975/go-ansible-aap-api-client/pkg/hosts"
+
 // InventoryRequestSchema is the schema for an inventory request
 type InventoryRequestSchema struct {
 	Name                         string `json:"name" yaml:"name"`
@@ -66,4 +68,16 @@ type InventoryResponseSchema struct {
 	Next     string                          `json:"next" yaml:"next"`
 	Previous string                          `json:"previous" yaml:"previous"`
 	Results  []InventoryResponseSingleSchema `json:"results" yaml:"results"`
+}
+
+// CustomGroupHostSchema is the schema for a custom group host
+type CustomGroupHostSchema struct {
+	GroupName string
+	Host      hosts.HostRequestSchema
+}
+
+// CustomGroupsIDSchema is the schema for a custom groups IDs
+type CustomGroupsIDSchema struct {
+	GroupName string
+	GroupID   int32
 }

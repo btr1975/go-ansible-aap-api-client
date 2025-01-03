@@ -44,6 +44,9 @@ type InventoryBuilder struct {
 	EOSGroupVars        groups.GroupGeneralNetwork
 	EOSHosts            []hosts.HostRequestSchema
 	EOSGroupID          int32
+	CustomGroups        []groups.GroupRequestSchema
+	CustomGroupHosts    []CustomGroupHostSchema
+	CustomGroupsIDs     []CustomGroupsIDSchema
 }
 
 // NewInventoryBuilder creates a new inventory builder instance
@@ -102,6 +105,10 @@ func (ib *InventoryBuilder) Run() (err error) {
 
 	err = ib.createBasicGroups()
 
+	if err != nil {
+		return err
+	}
+
 	for _, host := range ib.IOSHosts {
 		_, err = ib.inventoryManagement.Group.AddHostToGroup(ib.IOSGroupID, host)
 
@@ -131,6 +138,29 @@ func (ib *InventoryBuilder) Run() (err error) {
 
 		if err != nil {
 			return err
+		}
+	}
+
+	for _, group := range ib.CustomGroups {
+		groupData, err := ib.inventoryManagement.Inventory.AddGroupToInventory(ib.InventoryID, group)
+
+		if err != nil {
+			return err
+		}
+
+		ib.CustomGroupsIDs = append(ib.CustomGroupsIDs, CustomGroupsIDSchema{GroupName: groupData.Name, GroupID: groupData.ID})
+
+	}
+
+	for _, customGroupHost := range ib.CustomGroupHosts {
+		for _, group := range ib.CustomGroupsIDs {
+			if customGroupHost.GroupName == group.GroupName {
+				_, err = ib.inventoryManagement.Group.AddHostToGroup(group.GroupID, customGroupHost.Host)
+
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -191,6 +221,85 @@ func (ib *InventoryBuilder) AddEOSHost(host hosts.HostRequestSchema) {
 // :param hosts: The hosts to add
 func (ib *InventoryBuilder) AddEOSHosts(hosts []hosts.HostRequestSchema) {
 	ib.EOSHosts = append(ib.EOSHosts, hosts...)
+}
+
+// customGroupExists checks if a custom group exists
+//
+// :param groupName: The group name to check
+func (ib *InventoryBuilder) customGroupExists(groupName string) bool {
+	for _, group := range ib.CustomGroups {
+		if group.Name == groupName {
+			return true
+		}
+	}
+
+	return false
+}
+
+// AddCustomGroup adds a custom group to the inventory builder
+//
+// :param group: The group to add
+func (ib *InventoryBuilder) AddCustomGroup(group groups.GroupRequestSchema) (err error) {
+	if ib.customGroupExists(group.Name) {
+		return fmt.Errorf("custom group %s already exists", group.Name)
+	}
+
+	ib.CustomGroups = append(ib.CustomGroups, group)
+
+	return nil
+}
+
+// AddCustomGroups adds multiple custom groups to the inventory builder
+//
+// :param groups: The groups to add
+func (ib *InventoryBuilder) AddCustomGroups(groups []groups.GroupRequestSchema) (err error) {
+	for _, group := range groups {
+		if ib.customGroupExists(group.Name) {
+			return fmt.Errorf("custom group %s already exists", group.Name)
+		}
+
+	}
+
+	ib.CustomGroups = append(ib.CustomGroups, groups...)
+
+	return nil
+}
+
+// AddHostToCustomGroup adds a host to a custom group to the inventory builder
+//
+// :param groupName: The group name to add the host to
+// :param host: The host to add
+func (ib *InventoryBuilder) AddHostToCustomGroup(groupName string, host hosts.HostRequestSchema) (err error) {
+	if !ib.customGroupExists(groupName) {
+		return fmt.Errorf("custom group %s does not exists", groupName)
+	}
+
+	ib.CustomGroupHosts = append(ib.CustomGroupHosts, CustomGroupHostSchema{
+		GroupName: groupName,
+		Host:      host,
+	})
+
+	return nil
+}
+
+// AddHostsToCustomGroup adds a multiple hosts to a custom group to the inventory builder
+//
+// :param groupName: The group name to add the host to
+// :param hosts: The hosts to add
+func (ib *InventoryBuilder) AddHostsToCustomGroup(groupName string, hosts []hosts.HostRequestSchema) (err error) {
+	if !ib.customGroupExists(groupName) {
+		return fmt.Errorf("custom group %s does not exists", groupName)
+	}
+
+	for _, host := range hosts {
+		ib.CustomGroupHosts = append(ib.CustomGroupHosts, CustomGroupHostSchema{
+			GroupName: groupName,
+			Host:      host,
+		})
+
+	}
+
+	return nil
 }
 
 // createBasicGroups creates the basic groups for the inventory
