@@ -29,24 +29,24 @@ func NewInventoryManagement(basicConnection connection.BasicConnection) *Invento
 // InventoryBuilder represents an AAP inventory builder object
 type InventoryBuilder struct {
 	inventoryManagement *InventoryManagement
-	Inventory           InventoryRequestSchema
-	InventoryName       string
+	inventory           InventoryRequestSchema
+	inventoryName       string
 	InventoryID         int32
-	IOSGroupVars        groups.GroupGeneralNetwork
-	IOSHosts            []hosts.HostRequestSchema
-	IOSGroupID          int32
-	IOSXRGroupVars      groups.GroupGeneralNetwork
-	IOSXKHosts          []hosts.HostRequestSchema
-	IOSXRGroupID        int32
-	NXOSGroupVars       groups.GroupGeneralNetwork
-	NXOSHosts           []hosts.HostRequestSchema
-	NXOSGroupID         int32
-	EOSGroupVars        groups.GroupGeneralNetwork
-	EOSHosts            []hosts.HostRequestSchema
-	EOSGroupID          int32
-	CustomGroups        []groups.GroupRequestSchema
-	CustomGroupHosts    []CustomGroupHostSchema
-	CustomGroupsIDs     []CustomGroupsIDSchema
+	iosGroupVars        groups.GroupGeneralNetwork
+	iosHosts            []hosts.HostRequestSchema
+	iosGroupID          int32
+	iosxrGroupVars      groups.GroupGeneralNetwork
+	iosxrHosts          []hosts.HostRequestSchema
+	iosxrGroupID        int32
+	nxosGroupVars       groups.GroupGeneralNetwork
+	nxosHosts           []hosts.HostRequestSchema
+	nxosGroupID         int32
+	eosGroupVars        groups.GroupGeneralNetwork
+	eosHosts            []hosts.HostRequestSchema
+	eosGroupID          int32
+	customGroups        []groups.GroupRequestSchema
+	customGroupHosts    []CustomGroupHostSchema
+	customGroupsIDs     []CustomGroupsIDSchema
 }
 
 // NewInventoryBuilder creates a new inventory builder instance
@@ -83,19 +83,19 @@ func NewInventoryBuilder(inventoryManagement *InventoryManagement, inventory Inv
 
 	return &InventoryBuilder{
 		inventoryManagement: inventoryManagement,
-		Inventory:           inventory,
-		InventoryName:       inventory.Name,
-		IOSGroupVars:        iosGroupVars,
-		IOSXRGroupVars:      iosxrGroupVars,
-		NXOSGroupVars:       nxosGroupVars,
-		EOSGroupVars:        eosGroupVars,
+		inventory:           inventory,
+		inventoryName:       inventory.Name,
+		iosGroupVars:        iosGroupVars,
+		iosxrGroupVars:      iosxrGroupVars,
+		nxosGroupVars:       nxosGroupVars,
+		eosGroupVars:        eosGroupVars,
 	}
 }
 
 // Run runs the inventory builder
 func (ib *InventoryBuilder) Run() (err error) {
 
-	thisInventory, err := ib.inventoryManagement.Inventory.CreateInventory(ib.Inventory)
+	thisInventory, err := ib.inventoryManagement.Inventory.CreateInventory(ib.inventory)
 
 	if err != nil {
 		return err
@@ -109,51 +109,51 @@ func (ib *InventoryBuilder) Run() (err error) {
 		return err
 	}
 
-	for _, host := range ib.IOSHosts {
-		_, err = ib.inventoryManagement.Group.AddHostToGroup(ib.IOSGroupID, host)
+	for _, host := range ib.iosHosts {
+		_, err = ib.inventoryManagement.Group.AddHostToGroup(ib.iosGroupID, host)
 
 		if err != nil {
 			return err
 		}
 	}
 
-	for _, host := range ib.IOSXKHosts {
-		_, err = ib.inventoryManagement.Group.AddHostToGroup(ib.IOSXRGroupID, host)
+	for _, host := range ib.iosxrHosts {
+		_, err = ib.inventoryManagement.Group.AddHostToGroup(ib.iosxrGroupID, host)
 
 		if err != nil {
 			return err
 		}
 	}
 
-	for _, host := range ib.NXOSHosts {
-		_, err = ib.inventoryManagement.Group.AddHostToGroup(ib.NXOSGroupID, host)
+	for _, host := range ib.nxosHosts {
+		_, err = ib.inventoryManagement.Group.AddHostToGroup(ib.nxosGroupID, host)
 
 		if err != nil {
 			return err
 		}
 	}
 
-	for _, host := range ib.EOSHosts {
-		_, err = ib.inventoryManagement.Group.AddHostToGroup(ib.EOSGroupID, host)
+	for _, host := range ib.eosHosts {
+		_, err = ib.inventoryManagement.Group.AddHostToGroup(ib.eosGroupID, host)
 
 		if err != nil {
 			return err
 		}
 	}
 
-	for _, group := range ib.CustomGroups {
+	for _, group := range ib.customGroups {
 		groupData, err := ib.inventoryManagement.Inventory.AddGroupToInventory(ib.InventoryID, group)
 
 		if err != nil {
 			return err
 		}
 
-		ib.CustomGroupsIDs = append(ib.CustomGroupsIDs, CustomGroupsIDSchema{GroupName: groupData.Name, GroupID: groupData.ID})
+		ib.customGroupsIDs = append(ib.customGroupsIDs, CustomGroupsIDSchema{GroupName: groupData.Name, GroupID: groupData.ID})
 
 	}
 
-	for _, customGroupHost := range ib.CustomGroupHosts {
-		for _, group := range ib.CustomGroupsIDs {
+	for _, customGroupHost := range ib.customGroupHosts {
+		for _, group := range ib.customGroupsIDs {
 			if customGroupHost.GroupName == group.GroupName {
 				_, err = ib.inventoryManagement.Group.AddHostToGroup(group.GroupID, customGroupHost.Host)
 
@@ -171,63 +171,63 @@ func (ib *InventoryBuilder) Run() (err error) {
 //
 // :param host: The host to add
 func (ib *InventoryBuilder) AddIOSHost(host hosts.HostRequestSchema) {
-	ib.IOSHosts = append(ib.IOSHosts, host)
+	ib.iosHosts = append(ib.iosHosts, host)
 }
 
 // AddIOSHosts adds multiple IOS hosts to the inventory builder
 //
 // :param hosts: The hosts to add
 func (ib *InventoryBuilder) AddIOSHosts(hosts []hosts.HostRequestSchema) {
-	ib.IOSHosts = append(ib.IOSHosts, hosts...)
+	ib.iosHosts = append(ib.iosHosts, hosts...)
 }
 
 // AddIOSXRHost adds an IOS XR host to the inventory builder
 //
 // :param host: The host to add
 func (ib *InventoryBuilder) AddIOSXRHost(host hosts.HostRequestSchema) {
-	ib.IOSXKHosts = append(ib.IOSXKHosts, host)
+	ib.iosxrHosts = append(ib.iosxrHosts, host)
 }
 
 // AddIOSXRHosts adds multiple IOS XR hosts to the inventory builder
 //
 // :param hosts: The hosts to add
 func (ib *InventoryBuilder) AddIOSXRHosts(hosts []hosts.HostRequestSchema) {
-	ib.IOSXKHosts = append(ib.IOSXKHosts, hosts...)
+	ib.iosxrHosts = append(ib.iosxrHosts, hosts...)
 }
 
 // AddNXOSHost adds an NX-OS host to the inventory builder
 //
 // :param host: The host to add
 func (ib *InventoryBuilder) AddNXOSHost(host hosts.HostRequestSchema) {
-	ib.NXOSHosts = append(ib.NXOSHosts, host)
+	ib.nxosHosts = append(ib.nxosHosts, host)
 }
 
 // AddNXOSHosts adds multiple NX-OS hosts to the inventory builder
 //
 // :param hosts: The hosts to add
 func (ib *InventoryBuilder) AddNXOSHosts(hosts []hosts.HostRequestSchema) {
-	ib.NXOSHosts = append(ib.NXOSHosts, hosts...)
+	ib.nxosHosts = append(ib.nxosHosts, hosts...)
 }
 
 // AddEOSHost adds an EOS host to the inventory builder
 //
 // :param host: The host to add
 func (ib *InventoryBuilder) AddEOSHost(host hosts.HostRequestSchema) {
-	ib.EOSHosts = append(ib.EOSHosts, host)
+	ib.eosHosts = append(ib.eosHosts, host)
 }
 
 // AddEOSHosts adds multiple EOS hosts to the inventory builder
 //
 // :param hosts: The hosts to add
 func (ib *InventoryBuilder) AddEOSHosts(hosts []hosts.HostRequestSchema) {
-	ib.EOSHosts = append(ib.EOSHosts, hosts...)
+	ib.eosHosts = append(ib.eosHosts, hosts...)
 }
 
 // customGroupExists checks if a custom group exists
 //
 // :param groupName: The group name to check
 func (ib *InventoryBuilder) customGroupExists(groupName string) bool {
-	for _, group := range ib.CustomGroups {
+	for _, group := range ib.customGroups {
 		if group.Name == groupName {
 			return true
 		}
@@ -244,7 +244,7 @@ func (ib *InventoryBuilder) AddCustomGroup(group groups.GroupRequestSchema) (err
 		return fmt.Errorf("custom group %s already exists", group.Name)
 	}
 
-	ib.CustomGroups = append(ib.CustomGroups, group)
+	ib.customGroups = append(ib.customGroups, group)
 
 	return nil
 }
@@ -260,7 +260,7 @@ func (ib *InventoryBuilder) AddCustomGroups(groups []groups.GroupRequestSchema) 
 
 	}
 
-	ib.CustomGroups = append(ib.CustomGroups, groups...)
+	ib.customGroups = append(ib.customGroups, groups...)
 
 	return nil
 }
@@ -274,7 +274,7 @@ func (ib *InventoryBuilder) AddHostToCustomGroup(groupName string, host hosts.Ho
 		return fmt.Errorf("custom group %s does not exists", groupName)
 	}
 
-	ib.CustomGroupHosts = append(ib.CustomGroupHosts, CustomGroupHostSchema{
+	ib.customGroupHosts = append(ib.customGroupHosts, CustomGroupHostSchema{
 		GroupName: groupName,
 		Host:      host,
 	})
@@ -292,7 +292,7 @@ func (ib *InventoryBuilder) AddHostsToCustomGroup(groupName string, hosts []host
 	}
 
 	for _, host := range hosts {
-		ib.CustomGroupHosts = append(ib.CustomGroupHosts, CustomGroupHostSchema{
+		ib.customGroupHosts = append(ib.customGroupHosts, CustomGroupHostSchema{
 			GroupName: groupName,
 			Host:      host,
 		})
@@ -321,13 +321,13 @@ func (ib *InventoryBuilder) createBasicGroups() (err error) {
 
 		switch nos {
 		case "ios":
-			ib.IOSGroupID = groupResponse.ID
+			ib.iosGroupID = groupResponse.ID
 		case "iosxr":
-			ib.IOSXRGroupID = groupResponse.ID
+			ib.iosxrGroupID = groupResponse.ID
 		case "nxos":
-			ib.NXOSGroupID = groupResponse.ID
+			ib.nxosGroupID = groupResponse.ID
 		case "eos":
-			ib.EOSGroupID = groupResponse.ID
+			ib.eosGroupID = groupResponse.ID
 		default:
 			return fmt.Errorf("unsupported NOS: %s", nos)
 		}
@@ -345,38 +345,38 @@ func (ib *InventoryBuilder) getBasicGroupsRequestSchema(nos string) (groupSchema
 
 	switch nos {
 	case "ios":
-		groupVars, _ := dc.StructToYAMLString(ib.IOSGroupVars)
+		groupVars, _ := dc.StructToYAMLString(ib.iosGroupVars)
 
 		return groups.GroupRequestSchema{
-			Name:        fmt.Sprintf("%s-%s", ib.InventoryName, nos),
-			Description: fmt.Sprintf("Inventory %s Group for %s", ib.InventoryName, nos),
+			Name:        fmt.Sprintf("%s-%s", ib.inventoryName, nos),
+			Description: fmt.Sprintf("Inventory %s Group for %s", ib.inventoryName, nos),
 			Variables:   groupVars,
 		}, nil
 
 	case "iosxr":
-		groupVars, _ := dc.StructToYAMLString(ib.IOSXRGroupVars)
+		groupVars, _ := dc.StructToYAMLString(ib.iosxrGroupVars)
 
 		return groups.GroupRequestSchema{
-			Name:        fmt.Sprintf("%s-%s", ib.InventoryName, nos),
-			Description: fmt.Sprintf("Inventory %s Group for %s", ib.InventoryName, nos),
+			Name:        fmt.Sprintf("%s-%s", ib.inventoryName, nos),
+			Description: fmt.Sprintf("Inventory %s Group for %s", ib.inventoryName, nos),
 			Variables:   groupVars,
 		}, nil
 
 	case "nxos":
-		groupVars, _ := dc.StructToYAMLString(ib.NXOSGroupVars)
+		groupVars, _ := dc.StructToYAMLString(ib.nxosGroupVars)
 
 		return groups.GroupRequestSchema{
-			Name:        fmt.Sprintf("%s-%s", ib.InventoryName, nos),
-			Description: fmt.Sprintf("Inventory %s Group for %s", ib.InventoryName, nos),
+			Name:        fmt.Sprintf("%s-%s", ib.inventoryName, nos),
+			Description: fmt.Sprintf("Inventory %s Group for %s", ib.inventoryName, nos),
 			Variables:   groupVars,
 		}, nil
 
 	case "eos":
-		groupVars, _ := dc.StructToYAMLString(ib.EOSGroupVars)
+		groupVars, _ := dc.StructToYAMLString(ib.eosGroupVars)
 
 		return groups.GroupRequestSchema{
-			Name:        fmt.Sprintf("%s-%s", ib.InventoryName, nos),
-			Description: fmt.Sprintf("Inventory %s Group for %s", ib.InventoryName, nos),
+			Name:        fmt.Sprintf("%s-%s", ib.inventoryName, nos),
+			Description: fmt.Sprintf("Inventory %s Group for %s", ib.inventoryName, nos),
 			Variables:   groupVars,
 		}, nil
 
