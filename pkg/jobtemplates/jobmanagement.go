@@ -10,8 +10,6 @@ import (
 
 // JobManagement represents an AAP job management object
 type JobManagement struct {
-	connection      connection.BasicConnection
-	inventory       *inventories.Inventory
 	jobTemplate     *JobTemplate
 	job             *jobs.Job
 	jobID           int32
@@ -24,39 +22,37 @@ type JobManagement struct {
 // NewJobManagement creates a new job management instance
 //
 //	:param basicConnection: The basic connection to use
-func NewJobManagement(basicConnection connection.BasicConnection, jobTemplateName string, inventoryName string) *JobManagement {
+func NewJobManagement(basicConnection connection.BasicConnection, jobTemplateName string, inventoryName string) (*JobManagement, error) {
+	inventory := inventories.NewInventory(basicConnection)
+	inventoryID, err := inventory.GetInventoryID(inventoryName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	jobTemplate := NewJobTemplate(basicConnection)
+
+	jobTemplateID, err := jobTemplate.GetJobTemplateID(jobTemplateName)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &JobManagement{
-		connection:      basicConnection,
-		inventory:       inventories.NewInventory(basicConnection),
-		jobTemplate:     NewJobTemplate(basicConnection),
+		inventoryID:     inventoryID,
+		jobTemplate:     jobTemplate,
 		job:             jobs.NewJob(basicConnection),
 		jobTemplateName: jobTemplateName,
+		jobTemplateID:   jobTemplateID,
 		inventoryName:   inventoryName,
-	}
+	}, nil
 }
 
 // Run runs a job
-func (jobManagement *JobManagement) Run(launchData JobTemplateSimpleRequestSchema, inventoryID int32) (err error) {
-
-	jobManagement.jobTemplateID, err = jobManagement.jobTemplate.GetJobTemplateID(jobManagement.jobTemplateName)
-
-	fmt.Printf("Template ID %d\n", jobManagement.jobTemplateID)
-
-	if err != nil {
-		return err
-	}
-
-	jobManagement.inventoryID, err = jobManagement.inventory.GetInventoryID(jobManagement.inventoryName)
-
-	fmt.Printf("Inventory ID %d\n", jobManagement.inventoryID)
-
-	if err != nil {
-		return err
-	}
-
-	launchData.Inventory = inventoryID
-
-	fmt.Printf("launchData %v\n", launchData)
+//
+//	:param launchData: The launch data
+func (jobManagement *JobManagement) Run(launchData JobTemplateSimpleRequestSchema) (err error) {
+	launchData.Inventory = jobManagement.inventoryID
 
 	jobData, err := jobManagement.jobTemplate.LaunchJobTemplate(jobManagement.jobTemplateID, launchData)
 
@@ -64,34 +60,30 @@ func (jobManagement *JobManagement) Run(launchData JobTemplateSimpleRequestSchem
 		return err
 	}
 
-	fmt.Printf("Job ID %v\n", jobData.ID)
-
 	jobManagement.jobID = jobData.ID
 
 	return nil
 
 }
 
+// PollCompletion runs a job and polls for completion
+//
+//	:param printStatus: Whether to print the status
+//	:param launchData: The launch data
 func (jobManagement *JobManagement) PollCompletion(printStatus bool, launchData JobTemplateSimpleRequestSchema) (jobStatus string, err error) {
 	jobStatus = "new"
 
-	fmt.Printf("POOP %d", jobManagement.jobID)
+	if jobManagement.jobID == 0 {
 
-	/*
+		err = jobManagement.Run(launchData)
 
-		if jobManagement.jobID == 0 {
-
-			err = jobManagement.Run(launchData)
-
-			if err != nil {
-				return jobStatus, err
-			}
+		if err != nil {
+			return jobStatus, err
 		}
-
-	*/
+	}
 
 	if printStatus {
-		fmt.Printf("Polling Job ID %d current status %s", jobManagement.jobID, jobStatus)
+		fmt.Printf("Polling Job ID %d current status %s\n", jobManagement.jobID, jobStatus)
 	}
 
 	for jobStatus != "successful" && jobStatus != "failed" && jobStatus != "error" && jobStatus != "cancelled" {
@@ -104,14 +96,14 @@ func (jobManagement *JobManagement) PollCompletion(printStatus bool, launchData 
 		jobStatus = currentStatus
 
 		if printStatus {
-			fmt.Printf("Polling Job ID %d current status %s", jobManagement.jobID, jobStatus)
+			fmt.Printf("Polling Job ID %d current status %s\n", jobManagement.jobID, jobStatus)
 		}
 
 		time.Sleep(5 * time.Second)
 	}
 
 	if printStatus {
-		fmt.Printf("Polling Job ID %d completed status %s", jobManagement.jobID, jobStatus)
+		fmt.Printf("Polling Job ID %d completed status %s\n", jobManagement.jobID, jobStatus)
 	}
 
 	return jobStatus, nil

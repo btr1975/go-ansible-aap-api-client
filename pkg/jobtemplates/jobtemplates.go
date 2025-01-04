@@ -96,13 +96,9 @@ func (jobTemplate *JobTemplate) GetJobTemplateID(name string) (id int32, err err
 //	:param id: The ID of the job template to launch
 //	:param launchData: The struct to use for the launch data
 func (jobTemplate *JobTemplate) LaunchJobTemplate(id int32, launchData any) (schemaResponse JobTemplateResponseSingleSchema, err error) {
-	fmt.Printf("Used Template ID %v\n", id)
-
 	schemaResponse = JobTemplateResponseSingleSchema{}
 
 	uri := fmt.Sprintf("%s%d/launch/", jobTemplate.URI, id)
-
-	fmt.Printf("Used URI %v\n", uri)
 
 	jsonData, err := json.Marshal(launchData)
 
