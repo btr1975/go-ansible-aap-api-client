@@ -25,3 +25,22 @@ func NewProject(basicConnection connection.BasicConnection) *Project {
 		DataConversion: dataconversion.NewDataConverter(),
 	}
 }
+
+// GetAllProjects gets all projects
+func (project *Project) GetAllProjects() (schemaResponse ProjectResponseSchema, err error) {
+	schemaResponse = ProjectResponseSchema{}
+
+	response, err := project.connection.Get(project.URI, nil)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	err = project.DataConversion.ResponseBodyToStruct(&schemaResponse, *response)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	return schemaResponse, nil
+}
