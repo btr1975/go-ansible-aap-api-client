@@ -6,8 +6,12 @@ package organizations
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/dataconversion"
+	"github.com/btr1975/go-ansible-aap-api-client/pkg/inventories"
+	"github.com/btr1975/go-ansible-aap-api-client/pkg/jobtemplates"
+	"github.com/btr1975/go-ansible-aap-api-client/pkg/projects"
 )
 
 // Organization represents an AAP organization
@@ -163,4 +167,106 @@ func (organization *Organization) CreateOrganization(orgRequest OrganizationRequ
 	}
 
 	return schemaResponse, nil
+}
+
+// GetOrganizationProjects gets an organizations projects
+//
+//	:param name: The name of the organization to get
+func (organization *Organization) GetOrganizationProjects(name string) (projectResponse projects.ProjectResponseSchema, err error) {
+	var projectResponseSchema projects.ProjectResponseSchema
+	schemaResponse, err := organization.GetOrganization(name)
+
+	if err != nil {
+		return projectResponseSchema, err
+	}
+
+	if len(schemaResponse.Results) > 1 {
+		return projectResponseSchema, fmt.Errorf("more than one organization found with name %s", name)
+	}
+
+	if len(schemaResponse.Results) == 0 {
+		return projectResponseSchema, fmt.Errorf("no organization found with name %s", name)
+	}
+
+	response, err := organization.connection.GetFromRelated(schemaResponse.Results[0].Related.Projects)
+
+	if err != nil {
+		return projectResponseSchema, err
+	}
+
+	err = organization.DataConversion.ResponseBodyToStruct(&projectResponseSchema, *response)
+
+	if err != nil {
+		return projectResponseSchema, err
+	}
+
+	return projectResponseSchema, nil
+}
+
+// GetOrganizationInventories gets an organizations inventories
+//
+//	:param name: The name of the organization to get
+func (organization *Organization) GetOrganizationInventories(name string) (inventoriesResponse inventories.InventoryResponseSchema, err error) {
+	var inventoriesResponseSchema inventories.InventoryResponseSchema
+	schemaResponse, err := organization.GetOrganization(name)
+
+	if err != nil {
+		return inventoriesResponseSchema, err
+	}
+
+	if len(schemaResponse.Results) > 1 {
+		return inventoriesResponseSchema, fmt.Errorf("more than one organization found with name %s", name)
+	}
+
+	if len(schemaResponse.Results) == 0 {
+		return inventoriesResponseSchema, fmt.Errorf("no organization found with name %s", name)
+	}
+
+	response, err := organization.connection.GetFromRelated(schemaResponse.Results[0].Related.Inventories)
+
+	if err != nil {
+		return inventoriesResponseSchema, err
+	}
+
+	err = organization.DataConversion.ResponseBodyToStruct(&inventoriesResponseSchema, *response)
+
+	if err != nil {
+		return inventoriesResponseSchema, err
+	}
+
+	return inventoriesResponseSchema, nil
+}
+
+// GetOrganizationJobTemplates gets an organizations job templates
+//
+//	:param name: The name of the organization to get
+func (organization *Organization) GetOrganizationJobTemplates(name string) (jobTemplatesResponse jobtemplates.JobTemplateResponseSchema, err error) {
+	var jobTemplatesResponseSchema jobtemplates.JobTemplateResponseSchema
+	schemaResponse, err := organization.GetOrganization(name)
+
+	if err != nil {
+		return jobTemplatesResponseSchema, err
+	}
+
+	if len(schemaResponse.Results) > 1 {
+		return jobTemplatesResponseSchema, fmt.Errorf("more than one organization found with name %s", name)
+	}
+
+	if len(schemaResponse.Results) == 0 {
+		return jobTemplatesResponseSchema, fmt.Errorf("no organization found with name %s", name)
+	}
+
+	response, err := organization.connection.GetFromRelated(schemaResponse.Results[0].Related.JobTemplates)
+
+	if err != nil {
+		return jobTemplatesResponseSchema, err
+	}
+
+	err = organization.DataConversion.ResponseBodyToStruct(&jobTemplatesResponseSchema, *response)
+
+	if err != nil {
+		return jobTemplatesResponseSchema, err
+	}
+
+	return jobTemplatesResponseSchema, nil
 }

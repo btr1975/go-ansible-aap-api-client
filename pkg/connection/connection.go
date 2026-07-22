@@ -18,7 +18,9 @@ import (
 // BasicConnection is the basic connection interface
 type BasicConnection interface {
 	Get(uri string, params map[string]string) (response *http.Response, err error)
+	GetFromRelated(uri string) (response *http.Response, err error)
 	Post(uri string, data []byte) (response *http.Response, err error)
+	PostFromRelated(uri string, data []byte) (response *http.Response, err error)
 	Patch(uri string, data []byte) (response *http.Response, err error)
 	Delete(uri string, data []byte) (response *http.Response, err error)
 }
@@ -160,6 +162,32 @@ func (connection *Connection) checkOK(response *http.Response) bool {
 	return false
 }
 
+// addQueryParams adds query parameters
+//
+//	:param params: The query parameters to add
+func (connection *Connection) addQueryParams(params map[string]string) {
+	q := connection.BaseURL.Query()
+	for key, value := range params {
+		q.Set(key, value)
+	}
+	connection.BaseURL.RawQuery = q.Encode()
+}
+
+// removeQueryParams removes query parameters
+//
+//	:param theURL: The URL to remove the query parameters from
+//	:param params: The query parameters to remove
+func (connection *Connection) removeQueryParams(theURL string, params ...string) string {
+	a, _ := url.Parse(theURL)
+	q := a.Query()
+	for _, value := range params {
+		q.Del(value)
+	}
+	a.RawQuery = q.Encode()
+
+	return a.String()
+}
+
 // Get performs a GET request
 //
 //	:param uri: The URI to use
@@ -171,16 +199,45 @@ func (connection *Connection) Get(uri string, params map[string]string) (respons
 	}
 
 	if params != nil {
-		q := connection.BaseURL.Query()
-		for key, value := range params {
-			q.Set(key, value)
-		}
-		connection.BaseURL.RawQuery = q.Encode()
+		connection.addQueryParams(params)
 	}
 
 	finalURL := connection.BaseURL.JoinPath(connection.APIVersion, uri)
 
 	request, err := connection.createRequest("GET", finalURL.String(), nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	response, err = client.Do(request)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !connection.checkOK(response) {
+		body, _ := io.ReadAll(response.Body)
+		defer response.Body.Close()
+		return nil, fmt.Errorf("error GET response code %d, detail: %s", response.StatusCode, string(body))
+	}
+
+	return response, err
+
+}
+
+// GetFromRelated performs a GET request from a related response
+//
+//	:param uri: The URI to use
+func (connection *Connection) GetFromRelated(uri string) (response *http.Response, err error) {
+	client := &http.Client{
+		Transport: connection.transport,
+		Timeout:   time.Second * 10,
+	}
+
+	finalURL := connection.removeQueryParams(connection.BaseURL.JoinPath(uri).String(), "name")
+
+	request, err := connection.createRequest("GET", finalURL, nil)
 
 	if err != nil {
 		return nil, err
@@ -213,6 +270,39 @@ func (connection *Connection) Post(uri string, data []byte) (response *http.Resp
 	}
 
 	finalURL := connection.BaseURL.JoinPath(connection.APIVersion, uri)
+
+	request, err := connection.createRequest("POST", finalURL.String(), bytes.NewBuffer(data))
+
+	if err != nil {
+		return nil, err
+	}
+
+	response, err = client.Do(request)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !connection.checkOK(response) {
+		body, _ := io.ReadAll(response.Body)
+		defer response.Body.Close()
+		return nil, fmt.Errorf("error POST response code %d, detail: %s", response.StatusCode, string(body))
+	}
+
+	return response, err
+}
+
+// PostFromRelated performs a POST request from a related response
+//
+//	:param uri: The URI to use
+//	:param data: The data to POST
+func (connection *Connection) PostFromRelated(uri string, data []byte) (response *http.Response, err error) {
+	client := &http.Client{
+		Transport: connection.transport,
+		Timeout:   time.Second * 10,
+	}
+
+	finalURL := connection.BaseURL.JoinPath(uri)
 
 	request, err := connection.createRequest("POST", finalURL.String(), bytes.NewBuffer(data))
 
