@@ -18,7 +18,7 @@ import (
 // BasicConnection is the basic connection interface
 type BasicConnection interface {
 	Get(uri string, params map[string]string) (response *http.Response, err error)
-	GetFromRelated(uri string, params map[string]string) (response *http.Response, err error)
+	GetFromRelated(uri string) (response *http.Response, err error)
 	Post(uri string, data []byte) (response *http.Response, err error)
 	PostFromRelated(uri string, data []byte) (response *http.Response, err error)
 	Patch(uri string, data []byte) (response *http.Response, err error)
@@ -162,6 +162,32 @@ func (connection *Connection) checkOK(response *http.Response) bool {
 	return false
 }
 
+// addQueryParams adds query parameters
+//
+//	:param params: The query parameters to add
+func (connection *Connection) addQueryParams(params map[string]string) {
+	q := connection.BaseURL.Query()
+	for key, value := range params {
+		q.Set(key, value)
+	}
+	connection.BaseURL.RawQuery = q.Encode()
+}
+
+// removeQueryParams removes query parameters
+//
+//	:param theURL: The URL to remove the query parameters from
+//	:param params: The query parameters to remove
+func (connection *Connection) removeQueryParams(theURL string, params ...string) string {
+	a, _ := url.Parse(theURL)
+	q := a.Query()
+	for _, value := range params {
+		q.Del(value)
+	}
+	a.RawQuery = q.Encode()
+
+	return a.String()
+}
+
 // Get performs a GET request
 //
 //	:param uri: The URI to use
@@ -173,11 +199,7 @@ func (connection *Connection) Get(uri string, params map[string]string) (respons
 	}
 
 	if params != nil {
-		q := connection.BaseURL.Query()
-		for key, value := range params {
-			q.Set(key, value)
-		}
-		connection.BaseURL.RawQuery = q.Encode()
+		connection.addQueryParams(params)
 	}
 
 	finalURL := connection.BaseURL.JoinPath(connection.APIVersion, uri)
@@ -207,24 +229,15 @@ func (connection *Connection) Get(uri string, params map[string]string) (respons
 // GetFromRelated performs a GET request from a related response
 //
 //	:param uri: The URI to use
-//	:param params: The parameters to pass
-func (connection *Connection) GetFromRelated(uri string, params map[string]string) (response *http.Response, err error) {
+func (connection *Connection) GetFromRelated(uri string) (response *http.Response, err error) {
 	client := &http.Client{
 		Transport: connection.transport,
 		Timeout:   time.Second * 10,
 	}
 
-	if params != nil {
-		q := connection.BaseURL.Query()
-		for key, value := range params {
-			q.Set(key, value)
-		}
-		connection.BaseURL.RawQuery = q.Encode()
-	}
+	finalURL := connection.removeQueryParams(connection.BaseURL.JoinPath(uri).String(), "name")
 
-	finalURL := connection.BaseURL.JoinPath(uri)
-
-	request, err := connection.createRequest("GET", finalURL.String(), nil)
+	request, err := connection.createRequest("GET", finalURL, nil)
 
 	if err != nil {
 		return nil, err
