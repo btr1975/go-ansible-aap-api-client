@@ -90,3 +90,25 @@ func (project *Project) GetProjectID(name string) (id int32, err error) {
 
 	return schemaResponse.Results[0].ID, nil
 }
+
+// SyncProject syncs project by name
+//
+//	:param name: The name of the project to get
+func (project *Project) SyncProject(name string) (schemaResponse ProjectResponseSchema, err error) {
+	schemaResponse, err = project.GetProject(name)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	update := schemaResponse.Results[0].Related.Update
+
+	var b []byte
+	_, err = project.connection.PostFromRelated(update, b)
+
+	if err != nil {
+		return schemaResponse, err
+	}
+
+	return schemaResponse, nil
+}

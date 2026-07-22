@@ -12,9 +12,9 @@ type ProjectRequestSchema struct {
 	ScmClean                      bool   `json:"scm_clean" yaml:"scm_clean"`
 	ScmTrackSubmodules            bool   `json:"scm_track_submodules" yaml:"scm_track_submodules"`
 	ScmDeleteOnUpdate             bool   `json:"scm_delete_on_update" yaml:"scm_delete_on_update"`
-	Credential                    string `json:"credential" yaml:"credential"`
+	Credential                    int32  `json:"credential" yaml:"credential"`
 	Timeout                       int32  `json:"timeout" yaml:"timeout"`
-	Organization                  string `json:"organization" yaml:"organization"`
+	Organization                  int32  `json:"organization" yaml:"organization"`
 	ScmUpdateOnLaunch             bool   `json:"scm_update_on_launch" yaml:"scm_update_on_launch"`
 	ScmUpdateCacheTimeout         int32  `json:"scm_update_cache_timeout" yaml:"scm_update_cache_timeout"`
 	AllowOverride                 bool   `json:"allow_override" yaml:"allow_override"`
