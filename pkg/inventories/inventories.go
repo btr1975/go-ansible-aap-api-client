@@ -6,6 +6,7 @@ package inventories
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/dataconversion"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/groups"
@@ -116,7 +117,10 @@ func (inventory *Inventory) DeleteInventory(id int32) (statusCode int, err error
 //
 //	:param id: The ID of the inventory to update
 //	:param inventoryRequest: The inventory request schema to use
-func (inventory *Inventory) UpdateInventory(id int32, inventoryRequest InventoryRequestSchema) (schemaResponse InventoryResponseSingleSchema, err error) {
+func (inventory *Inventory) UpdateInventory(
+	id int32,
+	inventoryRequest InventoryRequestSchema,
+) (schemaResponse InventoryResponseSingleSchema, err error) {
 	schemaResponse = InventoryResponseSingleSchema{}
 
 	uri := fmt.Sprintf("%s%d/", inventory.URI, id)
@@ -145,7 +149,9 @@ func (inventory *Inventory) UpdateInventory(id int32, inventoryRequest Inventory
 // CreateInventory creates a new inventory
 //
 //	:param inventoryRequest: The inventory request schema to use
-func (inventory *Inventory) CreateInventory(inventoryRequest InventoryRequestSchema) (schemaResponse InventoryResponseSingleSchema, err error) {
+func (inventory *Inventory) CreateInventory(
+	inventoryRequest InventoryRequestSchema,
+) (schemaResponse InventoryResponseSingleSchema, err error) {
 	schemaResponse = InventoryResponseSingleSchema{}
 
 	data, err := json.Marshal(inventoryRequest)
@@ -173,7 +179,10 @@ func (inventory *Inventory) CreateInventory(inventoryRequest InventoryRequestSch
 //
 //	:param id: The ID of the inventory to add the host to
 //	:param hostRequest: The host request schema to use
-func (inventory *Inventory) AddHostToInventory(id int32, hostRequest hosts.HostRequestSchema) (schemaResponse hosts.HostResponseSingleSchema, err error) {
+func (inventory *Inventory) AddHostToInventory(
+	id int32,
+	hostRequest hosts.HostRequestSchema,
+) (schemaResponse hosts.HostResponseSingleSchema, err error) {
 	schemaResponse = hosts.HostResponseSingleSchema{}
 
 	uri := fmt.Sprintf("%s%d/hosts/", inventory.URI, id)
@@ -204,7 +213,10 @@ func (inventory *Inventory) AddHostToInventory(id int32, hostRequest hosts.HostR
 //
 //	:param id: The ID of the inventory to add the group to
 //	:param groupRequest: The group request schema to use
-func (inventory *Inventory) AddGroupToInventory(id int32, groupRequest groups.GroupRequestSchema) (schemaResponse groups.GroupResponseSingleSchema, err error) {
+func (inventory *Inventory) AddGroupToInventory(
+	id int32,
+	groupRequest groups.GroupRequestSchema,
+) (schemaResponse groups.GroupResponseSingleSchema, err error) {
 	schemaResponse = groups.GroupResponseSingleSchema{}
 
 	uri := fmt.Sprintf("%s%d/groups/", inventory.URI, id)

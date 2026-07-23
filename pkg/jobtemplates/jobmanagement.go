@@ -2,10 +2,11 @@ package jobtemplates
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/inventories"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/jobs"
-	"time"
 )
 
 // JobManagement represents an AAP job management object
@@ -22,7 +23,11 @@ type JobManagement struct {
 // NewJobManagement creates a new job management instance
 //
 //	:param basicConnection: The basic connection to use
-func NewJobManagement(basicConnection connection.BasicConnection, jobTemplateName string, inventoryName string) (*JobManagement, error) {
+func NewJobManagement(
+	basicConnection connection.BasicConnection,
+	jobTemplateName string,
+	inventoryName string,
+) (*JobManagement, error) {
 	inventory := inventories.NewInventory(basicConnection)
 	inventoryID, err := inventory.GetInventoryID(inventoryName)
 
@@ -70,41 +75,44 @@ func (jobManagement *JobManagement) Run(launchData JobTemplateSimpleRequestSchem
 //
 //	:param printStatus: Whether to print the status
 //	:param launchData: The launch data
-func (jobManagement *JobManagement) PollCompletion(printStatus bool, launchData JobTemplateSimpleRequestSchema) (jobStatus string, err error) {
-	jobStatus = "new"
+func (jobManagement *JobManagement) PollCompletion(
+	printStatus bool,
+	launchData JobTemplateSimpleRequestSchema,
+) (completionResponse JobManagementPollCompletionResponseSchema, err error) {
+	response := JobManagementPollCompletionResponseSchema{Status: "new", JobID: jobManagement.jobID}
 
 	if jobManagement.jobID == 0 {
 
 		err = jobManagement.Run(launchData)
 
+		response.JobID = jobManagement.jobID
+
 		if err != nil {
-			return jobStatus, err
+			return response, err
 		}
 	}
 
 	if printStatus {
-		fmt.Printf("Polling Job ID %d current status %s\n", jobManagement.jobID, jobStatus)
+		fmt.Printf("Polling Job ID %d current status %s\n", response.JobID, response.Status)
 	}
 
-	for jobStatus != "successful" && jobStatus != "failed" && jobStatus != "error" && jobStatus != "cancelled" {
-		currentStatus, err := jobManagement.job.GetJobStatus(jobManagement.jobID)
+	for response.Status != "successful" && response.Status != "failed" && response.Status != "error" && response.Status != "cancelled" {
+		response.Status, err = jobManagement.job.GetJobStatus(response.JobID)
 
 		if err != nil {
-			return jobStatus, err
+			return response, err
 		}
 
-		jobStatus = currentStatus
-
 		if printStatus {
-			fmt.Printf("Polling Job ID %d current status %s\n", jobManagement.jobID, jobStatus)
+			fmt.Printf("Polling Job ID %d current status %s\n", response.JobID, response.Status)
 		}
 
 		time.Sleep(5 * time.Second)
 	}
 
 	if printStatus {
-		fmt.Printf("Polling Job ID %d completed status %s\n", jobManagement.jobID, jobStatus)
+		fmt.Printf("Polling Job ID %d completed status %s\n", response.JobID, response.Status)
 	}
 
-	return jobStatus, nil
+	return response, nil
 }

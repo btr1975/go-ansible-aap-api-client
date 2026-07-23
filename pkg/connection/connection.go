@@ -43,7 +43,13 @@ type Connection struct {
 //	:param password: The password to use for authentication
 //	:param sslVerify: Whether to verify the SSL certificate
 //	:param certPath: The path to the certificate to use for SSL verification
-func NewConnection(baseURL string, username string, password string, sslVerify bool, certPath string) (*Connection, error) {
+func NewConnection(
+	baseURL string,
+	username string,
+	password string,
+	sslVerify bool,
+	certPath string,
+) (*Connection, error) {
 	baseURLParsed, err := url.Parse(baseURL)
 
 	if err != nil {
@@ -219,7 +225,11 @@ func (connection *Connection) Get(uri string, params map[string]string) (respons
 	if !connection.checkOK(response) {
 		body, _ := io.ReadAll(response.Body)
 		defer response.Body.Close()
-		return nil, fmt.Errorf("error GET response code %d, detail: %s", response.StatusCode, string(body))
+		return nil, fmt.Errorf(
+			"error GET response code %d, detail: %s",
+			response.StatusCode,
+			string(body),
+		)
 	}
 
 	return response, err
@@ -252,7 +262,11 @@ func (connection *Connection) GetFromRelated(uri string) (response *http.Respons
 	if !connection.checkOK(response) {
 		body, _ := io.ReadAll(response.Body)
 		defer response.Body.Close()
-		return nil, fmt.Errorf("error GET response code %d, detail: %s", response.StatusCode, string(body))
+		return nil, fmt.Errorf(
+			"error GET response code %d, detail: %s",
+			response.StatusCode,
+			string(body),
+		)
 	}
 
 	return response, err

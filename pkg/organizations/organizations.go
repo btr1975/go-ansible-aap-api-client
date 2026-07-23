@@ -116,7 +116,10 @@ func (organization *Organization) DeleteOrganization(id int32) (statusCode int, 
 //
 //	:param id: The ID of the organization to update
 //	:param orgRequest: The organization request schema to use
-func (organization *Organization) UpdateOrganization(id int32, orgRequest OrganizationRequestSchema) (schemaResponse OrganizationResponseSingleSchema, err error) {
+func (organization *Organization) UpdateOrganization(
+	id int32,
+	orgRequest OrganizationRequestSchema,
+) (schemaResponse OrganizationResponseSingleSchema, err error) {
 	schemaResponse = OrganizationResponseSingleSchema{}
 
 	uri := fmt.Sprintf("%s%d/", organization.URI, id)
@@ -145,7 +148,9 @@ func (organization *Organization) UpdateOrganization(id int32, orgRequest Organi
 // CreateOrganization creates an organization
 //
 //	:param orgRequest: The organization request schema to use
-func (organization *Organization) CreateOrganization(orgRequest OrganizationRequestSchema) (schemaResponse OrganizationResponseSingleSchema, err error) {
+func (organization *Organization) CreateOrganization(
+	orgRequest OrganizationRequestSchema,
+) (schemaResponse OrganizationResponseSingleSchema, err error) {
 	schemaResponse = OrganizationResponseSingleSchema{}
 
 	data, err := json.Marshal(orgRequest)
@@ -172,7 +177,9 @@ func (organization *Organization) CreateOrganization(orgRequest OrganizationRequ
 // GetOrganizationProjects gets an organizations projects
 //
 //	:param name: The name of the organization to get
-func (organization *Organization) GetOrganizationProjects(name string) (projectResponse projects.ProjectResponseSchema, err error) {
+func (organization *Organization) GetOrganizationProjects(
+	name string,
+) (projectResponse projects.ProjectResponseSchema, err error) {
 	var projectResponseSchema projects.ProjectResponseSchema
 	schemaResponse, err := organization.GetOrganization(name)
 
@@ -206,7 +213,9 @@ func (organization *Organization) GetOrganizationProjects(name string) (projectR
 // GetOrganizationInventories gets an organizations inventories
 //
 //	:param name: The name of the organization to get
-func (organization *Organization) GetOrganizationInventories(name string) (inventoriesResponse inventories.InventoryResponseSchema, err error) {
+func (organization *Organization) GetOrganizationInventories(
+	name string,
+) (inventoriesResponse inventories.InventoryResponseSchema, err error) {
 	var inventoriesResponseSchema inventories.InventoryResponseSchema
 	schemaResponse, err := organization.GetOrganization(name)
 
@@ -240,7 +249,9 @@ func (organization *Organization) GetOrganizationInventories(name string) (inven
 // GetOrganizationJobTemplates gets an organizations job templates
 //
 //	:param name: The name of the organization to get
-func (organization *Organization) GetOrganizationJobTemplates(name string) (jobTemplatesResponse jobtemplates.JobTemplateResponseSchema, err error) {
+func (organization *Organization) GetOrganizationJobTemplates(
+	name string,
+) (jobTemplatesResponse jobtemplates.JobTemplateResponseSchema, err error) {
 	var jobTemplatesResponseSchema jobtemplates.JobTemplateResponseSchema
 	schemaResponse, err := organization.GetOrganization(name)
 

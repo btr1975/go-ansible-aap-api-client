@@ -96,3 +96,9 @@ type JobTemplateResponseSchema struct {
 	Previous string                            `json:"previous" yaml:"previous"`
 	Results  []JobTemplateResponseSingleSchema `json:"results" yaml:"results"`
 }
+
+// JobManagementPollCompletionResponseSchema is the schema for a job launch poll completion
+type JobManagementPollCompletionResponseSchema struct {
+	Status string `json:"status" yaml:"status"`
+	JobID  int32  `json:"job_id" yaml:"job_id"`
+}
