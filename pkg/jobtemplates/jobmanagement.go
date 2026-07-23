@@ -2,10 +2,11 @@ package jobtemplates
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/inventories"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/jobs"
-	"time"
 )
 
 // JobManagement represents an AAP job management object
@@ -22,7 +23,11 @@ type JobManagement struct {
 // NewJobManagement creates a new job management instance
 //
 //	:param basicConnection: The basic connection to use
-func NewJobManagement(basicConnection connection.BasicConnection, jobTemplateName string, inventoryName string) (*JobManagement, error) {
+func NewJobManagement(
+	basicConnection connection.BasicConnection,
+	jobTemplateName string,
+	inventoryName string,
+) (*JobManagement, error) {
 	inventory := inventories.NewInventory(basicConnection)
 	inventoryID, err := inventory.GetInventoryID(inventoryName)
 
@@ -70,7 +75,10 @@ func (jobManagement *JobManagement) Run(launchData JobTemplateSimpleRequestSchem
 //
 //	:param printStatus: Whether to print the status
 //	:param launchData: The launch data
-func (jobManagement *JobManagement) PollCompletion(printStatus bool, launchData JobTemplateSimpleRequestSchema) (jobStatus string, err error) {
+func (jobManagement *JobManagement) PollCompletion(
+	printStatus bool,
+	launchData JobTemplateSimpleRequestSchema,
+) (jobStatus string, err error) {
 	jobStatus = "new"
 
 	if jobManagement.jobID == 0 {

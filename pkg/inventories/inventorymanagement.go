@@ -2,6 +2,7 @@ package inventories
 
 import (
 	"fmt"
+
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/dataconversion"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/groups"
@@ -52,7 +53,10 @@ type InventoryBuilder struct {
 // NewInventoryBuilder creates a new inventory builder instance
 //
 // :param inventoryManagement: The inventory management object to use
-func NewInventoryBuilder(inventoryManagement *InventoryManagement, inventory InventoryRequestSchema) *InventoryBuilder {
+func NewInventoryBuilder(
+	inventoryManagement *InventoryManagement,
+	inventory InventoryRequestSchema,
+) *InventoryBuilder {
 	iosGroupVars := groups.GroupGeneralNetwork{
 		AnsibleConnection:   "ansible.netcommon.network_cli",
 		AnsibleBecome:       true,
@@ -148,7 +152,10 @@ func (ib *InventoryBuilder) Run() (err error) {
 			return err
 		}
 
-		ib.customGroupsIDs = append(ib.customGroupsIDs, CustomGroupsIDSchema{GroupName: groupData.Name, GroupID: groupData.ID})
+		ib.customGroupsIDs = append(
+			ib.customGroupsIDs,
+			CustomGroupsIDSchema{GroupName: groupData.Name, GroupID: groupData.ID},
+		)
 
 	}
 

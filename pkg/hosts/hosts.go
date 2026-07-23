@@ -6,6 +6,7 @@ package hosts
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/dataconversion"
 )
@@ -114,7 +115,10 @@ func (host *Host) DeleteHost(id int32) (statusCode int, err error) {
 //
 //	:param id: The ID of the host to update
 //	:param hostRequest: The host request to use
-func (host *Host) UpdateHost(id int32, hostRequest HostRequestSchema) (schemaResponse HostResponseSingleSchema, err error) {
+func (host *Host) UpdateHost(
+	id int32,
+	hostRequest HostRequestSchema,
+) (schemaResponse HostResponseSingleSchema, err error) {
 	schemaResponse = HostResponseSingleSchema{}
 
 	uri := fmt.Sprintf("%s%d/", host.URI, id)

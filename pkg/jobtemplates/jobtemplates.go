@@ -6,6 +6,7 @@ package jobtemplates
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/dataconversion"
 )
@@ -95,7 +96,10 @@ func (jobTemplate *JobTemplate) GetJobTemplateID(name string) (id int32, err err
 //
 //	:param id: The ID of the job template to launch
 //	:param launchData: The struct to use for the launch data
-func (jobTemplate *JobTemplate) LaunchJobTemplate(id int32, launchData any) (schemaResponse JobTemplateResponseSingleSchema, err error) {
+func (jobTemplate *JobTemplate) LaunchJobTemplate(
+	id int32,
+	launchData any,
+) (schemaResponse JobTemplateResponseSingleSchema, err error) {
 	schemaResponse = JobTemplateResponseSingleSchema{}
 
 	uri := fmt.Sprintf("%s%d/launch/", jobTemplate.URI, id)

@@ -6,10 +6,11 @@ package groups
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/connection"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/dataconversion"
 	"github.com/btr1975/go-ansible-aap-api-client/pkg/hosts"
-	"net/http"
 )
 
 // Group represents an AAP group
@@ -115,7 +116,10 @@ func (group *Group) DeleteGroup(id int32) (statusCode int, err error) {
 //
 //	:param id: The ID of the group to update
 //	:param groupRequest: The group request to use
-func (group *Group) UpdateGroup(id int32, groupRequest GroupRequestSchema) (schemaResponse GroupResponseSingleSchema, err error) {
+func (group *Group) UpdateGroup(
+	id int32,
+	groupRequest GroupRequestSchema,
+) (schemaResponse GroupResponseSingleSchema, err error) {
 	schemaResponse = GroupResponseSingleSchema{}
 
 	uri := fmt.Sprintf("%s%d/", group.URI, id)
@@ -141,7 +145,10 @@ func (group *Group) UpdateGroup(id int32, groupRequest GroupRequestSchema) (sche
 	return schemaResponse, nil
 }
 
-func (group *Group) AddHostToGroup(id int32, schema hosts.HostRequestSchema) (response *http.Response, err error) {
+func (group *Group) AddHostToGroup(
+	id int32,
+	schema hosts.HostRequestSchema,
+) (response *http.Response, err error) {
 	uri := fmt.Sprintf("%s%d/hosts/", group.URI, id)
 
 	data, err := json.Marshal(schema)
